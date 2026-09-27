@@ -10,12 +10,12 @@ const {board} = require("../lib/odds");
   const b = await board();
   console.log("\nCOUNTS", JSON.stringify(b.counts), "ms", b.ms);
   console.log("CATS", b.cats.map(c => c.id + ":" + c.count).join(" "));
-  console.log("\nPAIRS (poly vs kalshi)");
+  console.log("\nPAIRS (poly vs kalshi)", b.pairs.filter(r => r.sim === 1 && r.cat === "sports").length, "game-ish");
   for (const r of b.pairs) console.log(`${r.cat.padEnd(8)} ${(r.poly.p * 100).toFixed(1).padStart(5)} ${(r.kalshi.p * 100).toFixed(1).padStart(5)} gap ${String(r.gap).padStart(5)} ${r.thin ? "thin" : "    "} sim ${r.sim} | ${r.title}${r.outcome ? " :: " + r.outcome : ""}  <=>  ${r.kalshi.title}${r.kOutcome ? " :: " + r.kOutcome : ""}  [${r.id}] vol ${Math.round(r.poly.vol24)}/${Math.round(r.kalshi.vol24)}`);
   console.log("\nTOP POLY UNMATCHED"); for (const x of b.onlyPoly) console.log(" ", x.cat, Math.round(x.vol24), x.title, x.end);
   console.log("\nTOP KALSHI UNMATCHED"); for (const x of b.onlyKalshi) console.log(" ", x.cat, Math.round(x.vol24), x.title, x.end);
 })().catch(e => { console.error(e); process.exit(1); });
-// game samples, to teach the matcher team names
+/* game samples (off)
 (async () => {
   const raw = async u => (await fetch(u)).json();
   for (const s of ["KXNFLGAME", "KXMLBGAME", "KXNCAAFGAME", "KXEPLGAME", "KXNHLGAME", "KXNBAGAME"]){
@@ -25,3 +25,4 @@ const {board} = require("../lib/odds");
   const pe = await raw("https://gamma-api.polymarket.com/events?limit=40&active=true&closed=false&order=volume24hr&ascending=false");
   for (const e of pe.filter(e => e.teams || e.sport).slice(0, 12)) console.log("PGAME", e.title, "|", JSON.stringify(e.teams || "").slice(0, 300), "|", JSON.stringify(e.sport || "").slice(0,100), "|", e.seriesSlug, "|", (e.tags||[]).map(t=>t.label).join(","));
 })();
+*/
