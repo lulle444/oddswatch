@@ -201,3 +201,9 @@ code{font-family:var(--f-mono),monospace;font-size:.92em;background:var(--b-bg2)
   .panel{padding:18px}
   .live-pill small{display:none}
 }
+@media (max-width:640px){
+  .ot{font-size:13px}
+  .ot td,.ot th{padding:9px 5px}
+  .ot td:first-child{min-width:150px}
+  .bell{display:none}
+}

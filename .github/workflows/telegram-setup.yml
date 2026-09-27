@@ -1,0 +1,13 @@
+name: Telegram setup
+# Points @useoddwatchbot's webhook at the site and sets its command menu. Runs when this file changes, or by hand.
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/telegram-setup.yml"]
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - run: curl -sS -m 60 "${{ vars.SITE_URL || 'https://oddswatch.vercel.app' }}/api/telegram-setup"; echo
+      - run: curl -sS -m 90 "${{ vars.SITE_URL || 'https://oddswatch.vercel.app' }}/api/check-alerts"; echo
