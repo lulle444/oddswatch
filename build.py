@@ -161,7 +161,7 @@ HOME = """  <section class="hero">
   <section class="stats" id="stats" aria-label="The two markets today"></section>
 
   <section class="gapcards" aria-labelledby="gapsH">
-    <div class="sectionhead"><div><h2 id="gapsH">Where they disagree most</h2><p class="sub">Liquid questions only: both sides trade and both spreads are tight.</p></div><a class="btn" href="/gaps">All gaps →</a></div>
+    <div class="sectionhead"><div><h2 id="gapsH">Where they disagree most</h2><p class="sub">Liquid questions only: both sides trade, both spreads are tight, and games already under way are left out.</p></div><a class="btn" href="/gaps">All gaps →</a></div>
     <div class="cards" id="gapCards"><p class="empty">Loading…</p></div>
   </section>
 

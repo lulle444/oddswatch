@@ -45,7 +45,7 @@
       </div>${track(r)}`;
   }
 
-  const liquid = b => b.pairs.filter(r => !r.thin);
+  const liquid = b => b.pairs.filter(r => !r.thin && !r.live);
   const byGap = rows => rows.slice().sort((x, y) => Math.abs(y.gap) - Math.abs(x.gap));
 
   /* ---------- the board ---------- */
