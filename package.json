@@ -1,0 +1,8 @@
+{
+  "name": "oddswatch",
+  "private": true,
+  "description": "Same event, different odds: Polymarket and Kalshi side by side. Static pages built by build.py from brand.json, plus Vercel functions in /api.",
+  "dependencies": {
+    "@vercel/og": "0.8.6"
+  }
+}

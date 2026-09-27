@@ -1,0 +1,15 @@
+name: Probe markets
+# Prints live Polymarket and Kalshi data and every pair the matcher finds (the build sandbox can't reach either API).
+on:
+  workflow_dispatch:
+  push:
+    paths: ["lib/**", "scripts/probe.js", ".github/workflows/probe.yml"]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: node scripts/probe.js
