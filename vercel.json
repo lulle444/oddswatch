@@ -1,0 +1,26 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "functions": {
+    "api/og.js": {"includeFiles": "assets/logo-mark.svg", "maxDuration": 60},
+    "api/page.js": {"includeFiles": "{templates/pair.html,templates/topic.html,404.html}", "maxDuration": 60},
+    "api/odds.js": {"maxDuration": 60},
+    "api/check-alerts.js": {"maxDuration": 60},
+    "api/telegram.js": {"maxDuration": 60}
+  },
+  "rewrites": [
+    {"source": "/q/:s", "destination": "/api/page?s=:s"},
+    {"source": "/topic/:t", "destination": "/api/page?p=topic&t=:t"},
+    {"source": "/sitemap-questions.xml", "destination": "/api/page?sitemap=1"}
+  ],
+  "redirects": [
+    {"source": "/q", "destination": "/", "permanent": false},
+    {"source": "/topic", "destination": "/", "permanent": false},
+    {"source": "/templates/:path*", "destination": "/", "permanent": false}
+  ],
+  "headers": [
+    {"source": "/(styles\\.css|app\\.js|bg\\.js)", "has": [{"type": "query", "key": "v"}],
+     "headers": [{"key": "Cache-Control", "value": "public, max-age=31536000, immutable"}]},
+    {"source": "/assets/(.*)", "headers": [{"key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800"}]}
+  ]
+}

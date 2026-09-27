@@ -26,3 +26,8 @@ const {board} = require("../lib/odds");
   for (const e of pe.filter(e => e.teams || e.sport).slice(0, 12)) console.log("PGAME", e.title, "|", JSON.stringify(e.teams || "").slice(0, 300), "|", JSON.stringify(e.sport || "").slice(0,100), "|", e.seriesSlug, "|", (e.tags||[]).map(t=>t.label).join(","));
 })();
 */
+// the whole board, gzipped, so a build sandbox without access to either API can test pages on real data
+if (process.env.DUMP) (async () => {
+  const b = await require("../lib/odds").board();
+  console.log("BOARDGZ " + require("zlib").gzipSync(JSON.stringify(b)).toString("base64"));
+})();

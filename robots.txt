@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://oddswatch.vercel.app/sitemap.xml
+Sitemap: https://oddswatch.vercel.app/sitemap-questions.xml

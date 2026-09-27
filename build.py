@@ -189,6 +189,7 @@ MIDTERMS = head("US midterms · November 3, 2026", "The midterms, <em>priced twi
 """
 
 TOPIC = """__HEAD__
+  <span id="topic" data-t="__TOPIC__" hidden></span>
 """ + BOARD.replace("__BOARD_H__", "Every __TOPIC__ question on both")
 
 LEARN = head("Learn", "Why the same question <em>has two prices.</em>",

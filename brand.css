@@ -1,0 +1,18 @@
+/* Written by build.py from brand.json. Edit brand.json instead. */
+:root{
+  --b-bg:#F4F6FA;
+  --b-bg2:#E8ECF3;
+  --b-panel:#FFFFFF;
+  --b-line:#DCE2EC;
+  --b-ink:#0E1526;
+  --b-muted:#5A6478;
+  --b-poly:#2F5BEA;
+  --b-kalshi:#0B8F63;
+  --b-gap:#E4572E;
+  --b-accent:#0E1526;
+  --b-up:#0B8F63;
+  --b-down:#C4322A;
+  --f-display:"Bricolage Grotesque";
+  --f-body:"Inter";
+  --f-mono:"DM Mono";
+}

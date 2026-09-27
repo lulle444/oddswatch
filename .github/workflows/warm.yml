@@ -1,0 +1,37 @@
+name: Warm board
+# Every 10 minutes: runs the scheduled check (rebuilds the board, saves the hourly prices for the charts, sends
+# alerts and the daily note), keeps the CDN copy of /api/odds fresh, and prints a short health summary.
+on:
+  schedule: [{cron: "*/10 * * * *"}]
+  workflow_dispatch:
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check alerts
+        run: curl -sS -m 90 "${{ vars.SITE_URL || 'https://oddswatch.vercel.app' }}/api/check-alerts"; echo
+      - name: Board
+        run: |
+          set +e
+          SITE="${{ vars.SITE_URL || 'https://oddswatch.vercel.app' }}"
+          curl -sS -m 60 "$SITE/api/odds" -o odds.json -w 'odds: HTTP %{http_code} in %{time_total}s\n'
+          python3 - <<'PY'
+          import json
+          try: d = json.load(open("odds.json"))
+          except Exception as e: print("not JSON:", e, open("odds.json").read()[:300]); raise SystemExit
+          if "error" in d: print("ERROR:", d["error"]); raise SystemExit
+          print("counts:", d["counts"], "built in", d.get("ms"), "ms")
+          liq = sorted([r for r in d["pairs"] if not r["thin"]], key=lambda r: -abs(r["gap"]))
+          print("liquid pairs:", len(liq))
+          for r in liq[:12]: print(f'  gap {r["gap"]:+6.1f}  poly {r["poly"]["p"]*100:5.1f}  kalshi {r["kalshi"]["p"]*100:5.1f}  {r["title"][:60]} :: {r.get("outcome") or ""}')
+          open("slug", "w").write(liq[0]["slug"] if liq else "")
+          open("id", "w").write(liq[0]["id"] if liq else "")
+          PY
+          S=$(cat slug); I=$(cat id)
+          [ -n "$S" ] && curl -sS -m 60 -o /dev/null "$SITE/q/$S" -w "page /q/$S: HTTP %{http_code} %{size_download}B\n"
+          [ -n "$S" ] && curl -sS -m 60 -o /dev/null "$SITE/api/og?p=q&s=$S" -w "share image: HTTP %{http_code} %{content_type} %{size_download}B %{redirect_url}\n"
+          [ -n "$I" ] && curl -sS -m 30 "$SITE/api/history?id=$I&days=7" | head -c 300; echo
+          for P in home gaps midterms; do curl -sS -m 60 -o /dev/null "$SITE/api/og?p=$P" -w "$P image: HTTP %{http_code} %{content_type} %{size_download}B %{redirect_url}\n"; done
+          curl -sS -m 30 -o /dev/null "$SITE/topic/politics" -w "topic page: HTTP %{http_code} %{size_download}B\n"
+          curl -sS -m 30 "$SITE/sitemap-questions.xml" | grep -c "<loc>" | sed 's/^/sitemap questions: /'

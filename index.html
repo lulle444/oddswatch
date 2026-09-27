@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oddswatch: Polymarket vs Kalshi odds, side by side</title>
+<meta name="description" content="The same question priced on Polymarket and Kalshi, side by side and live: where the two biggest prediction markets agree, where they don’t, and by how much.">
+<link rel="canonical" href="https://oddswatch.vercel.app/">
+<link rel="icon" type="image/svg+xml" href="/assets/logo-mark.svg">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Oddswatch">
+<meta property="og:title" content="Oddswatch: Polymarket vs Kalshi odds, side by side">
+<meta property="og:description" content="The same question priced on Polymarket and Kalshi, side by side and live: where the two biggest prediction markets agree, where they don’t, and by how much.">
+<meta property="og:url" content="https://oddswatch.vercel.app/">
+<meta property="og:image" content="https://oddswatch.vercel.app/api/og?p=home">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://oddswatch.vercel.app/api/og?p=home">
+<meta name="theme-color" content="#F4F6FA">
+<link rel="preload" href="/api/odds" as="fetch" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css?v=3fc8346320">
+<style>:root{
+  --b-bg:#F4F6FA;
+  --b-bg2:#E8ECF3;
+  --b-panel:#FFFFFF;
+  --b-line:#DCE2EC;
+  --b-ink:#0E1526;
+  --b-muted:#5A6478;
+  --b-poly:#2F5BEA;
+  --b-kalshi:#0B8F63;
+  --b-gap:#E4572E;
+  --b-accent:#0E1526;
+  --b-up:#0B8F63;
+  --b-down:#C4322A;
+  --f-display:"Bricolage Grotesque";
+  --f-body:"Inter";
+  --f-mono:"DM Mono";
+}</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://oddswatch.vercel.app/#org","name":"Oddswatch","url":"https://oddswatch.vercel.app/","logo":"https://oddswatch.vercel.app/assets/apple-touch-icon.png"},{"@type":"WebSite","@id":"https://oddswatch.vercel.app/#site","name":"Oddswatch","url":"https://oddswatch.vercel.app/","description":"The same question priced on Polymarket and Kalshi, side by side and live: where the two biggest prediction markets agree, where they don’t, and by how much.","publisher":{"@id":"https://oddswatch.vercel.app/#org"},"inLanguage":"en"}]}</script>
+</head>
+<body data-page="home" data-bot="useoddwatchbot">
+<canvas id="lines" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="Oddswatch home"><img src="/assets/logo-mark.svg" alt="" width="34" height="34"><span class="word">Odds<i>watch</i></span></a>
+    <nav class="navlinks" aria-label="Main"><a href="/" aria-current="page">Odds</a><a href="/gaps">Gaps</a><a href="/midterms">Midterms</a><a href="/alerts">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a></nav>
+    <div class="navright"><span class="live-pill" id="livePill" title="Pairs of markets we match right now"><i class="dot"></i><b class="num" id="livePairs">–</b> <small>pairs live</small></span></div>
+  </header>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Polymarket vs Kalshi, live</p>
+      <h1>Same event. <em>Different odds.</em></h1>
+      <p class="lede">The two biggest prediction markets often price the same question differently. We match every question they share and show both prices side by side, so you can see where they agree, where they don’t, and by how much.</p>
+      <p class="heroctas"><a class="btn primary" href="/gaps">See the biggest gaps</a> <a class="btn" href="/alerts">Get gap alerts</a></p>
+    </div>
+    <aside class="spot panel" id="spot" aria-live="polite">
+      <p class="eyebrow">Biggest gap right now</p>
+      <div class="spotbody"><p class="empty">Loading…</p></div>
+    </aside>
+  </section>
+
+  <section class="stats" id="stats" aria-label="The two markets today"></section>
+
+  <section class="gapcards" aria-labelledby="gapsH">
+    <div class="sectionhead"><div><h2 id="gapsH">Where they disagree most</h2><p class="sub">Liquid questions only: both sides trade and both spreads are tight.</p></div><a class="btn" href="/gaps">All gaps →</a></div>
+    <div class="cards" id="gapCards"><p class="empty">Loading…</p></div>
+  </section>
+
+  <section class="panel board" aria-labelledby="boardH">
+    <div class="sectionhead">
+      <div><h2 id="boardH">Every question on both</h2><p class="sub" id="boardSub">Loading both markets…</p></div>
+      <div class="filters">
+        <label class="search"><span class="visually-hidden">Search</span><input id="q" type="search" placeholder="Search Senate, Fed, Chiefs…" autocomplete="off"></label>
+        <label class="select"><span class="visually-hidden">Sort</span><select id="sort"><option value="vol">Most traded</option><option value="gap">Biggest gap</option><option value="end">Ending soonest</option></select></label>
+      </div>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Topic"></div>
+    <div class="tablebox">
+      <table class="ot">
+        <thead><tr>
+          <th scope="col">Question</th>
+          <th scope="col" class="r"><span class="key poly"></span>Polymarket</th>
+          <th scope="col" class="r"><span class="key kalshi"></span>Kalshi</th>
+          <th scope="col" class="r">Gap</th>
+          <th scope="col" class="r hs">24h traded</th>
+          <th scope="col" class="r hm">Ends</th>
+        </tr></thead>
+        <tbody id="rows"><tr><td colspan="6" class="empty">Loading both markets…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="more"><button class="btn" id="showMore" hidden>Show more</button></p>
+    <p class="fine">Each price is the market’s chance for that outcome: the middle of the best bid and ask, or the last trade when the spread is wider than 10 points, the way both platforms show it. Gap is Polymarket minus Kalshi, in percentage points. <span class="thin-key">Faded</span> rows are thinly traded or have a wide spread, so their gap may not be real.</p>
+  </section>
+
+  <section class="twocol lonely" aria-label="Only on one platform">
+    <article class="panel"><h3><span class="key poly"></span>Busy on Polymarket, not on Kalshi</h3><ol id="onlyPoly" class="lonelist"><li class="empty">Loading…</li></ol></article>
+    <article class="panel"><h3><span class="key kalshi"></span>Busy on Kalshi, not on Polymarket</h3><ol id="onlyKalshi" class="lonelist"><li class="empty">Loading…</li></ol></article>
+  </section>
+
+  <footer class="foot">
+    <div><a class="logo small" href="/"><img src="/assets/logo-mark.svg" alt="" width="24" height="24"><span class="word">Odds<i>watch</i></span></a>
+      <p>Same event, different odds. Polymarket and Kalshi side by side.</p></div>
+    <nav aria-label="Footer"><a href="/">Odds</a><a href="/gaps">Gaps</a><a href="/midterms">Midterms</a><a href="/alerts">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a></nav>
+    <nav class="topicnav" aria-label="Topics"><span>Topics</span><a href="/topic/politics">Politics</a><a href="/topic/economy">Economy</a><a href="/topic/sports">Sports</a><a href="/topic/crypto">Crypto</a><a href="/topic/culture">Culture</a></nav>
+    <p class="fine">Prices from the public data of <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> and <a href="https://kalshi.com" target="_blank" rel="noopener">Kalshi</a>, refreshed every few minutes. Oddswatch is independent and not affiliated with either. No paid placements. Not financial advice, and prediction markets are not legal everywhere. Sister sites: <a href="https://www.usetidewatch.org" target="_blank" rel="noopener">Tidewatch</a>, <a href="https://usepegwatch.vercel.app" target="_blank" rel="noopener">Pegwatch</a> and <a href="https://ratewatch-lemon.vercel.app" target="_blank" rel="noopener">Ratewatch</a>.</p>
+  </footer>
+</div>
+<script src="/bg.js?v=1072d09885" defer></script>
+<script src="/app.js?v=748b7f3762" defer></script>
+</body>
+</html>

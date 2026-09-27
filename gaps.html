@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biggest gaps between Polymarket and Kalshi right now · Oddswatch</title>
+<meta name="description" content="The questions where Polymarket and Kalshi disagree most, live, on liquid markets only.">
+<link rel="canonical" href="https://oddswatch.vercel.app/gaps">
+<link rel="icon" type="image/svg+xml" href="/assets/logo-mark.svg">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Oddswatch">
+<meta property="og:title" content="Biggest gaps between Polymarket and Kalshi right now · Oddswatch">
+<meta property="og:description" content="The questions where Polymarket and Kalshi disagree most, live, on liquid markets only.">
+<meta property="og:url" content="https://oddswatch.vercel.app/gaps">
+<meta property="og:image" content="https://oddswatch.vercel.app/api/og?p=gaps">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://oddswatch.vercel.app/api/og?p=gaps">
+<meta name="theme-color" content="#F4F6FA">
+<link rel="preload" href="/api/odds" as="fetch" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css?v=3fc8346320">
+<style>:root{
+  --b-bg:#F4F6FA;
+  --b-bg2:#E8ECF3;
+  --b-panel:#FFFFFF;
+  --b-line:#DCE2EC;
+  --b-ink:#0E1526;
+  --b-muted:#5A6478;
+  --b-poly:#2F5BEA;
+  --b-kalshi:#0B8F63;
+  --b-gap:#E4572E;
+  --b-accent:#0E1526;
+  --b-up:#0B8F63;
+  --b-down:#C4322A;
+  --f-display:"Bricolage Grotesque";
+  --f-body:"Inter";
+  --f-mono:"DM Mono";
+}</style>
+</head>
+<body data-page="gaps" data-bot="useoddwatchbot">
+<canvas id="lines" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="nav">
+    <a class="logo" href="/" aria-label="Oddswatch home"><img src="/assets/logo-mark.svg" alt="" width="34" height="34"><span class="word">Odds<i>watch</i></span></a>
+    <nav class="navlinks" aria-label="Main"><a href="/">Odds</a><a href="/gaps" aria-current="page">Gaps</a><a href="/midterms">Midterms</a><a href="/alerts">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a></nav>
+    <div class="navright"><span class="live-pill" id="livePill" title="Pairs of markets we match right now"><i class="dot"></i><b class="num" id="livePairs">–</b> <small>pairs live</small></span></div>
+  </header>
+  <section class="pagehead">
+    <p class="eyebrow">Gaps</p>
+    <h1>Where the markets <em>disagree.</em></h1>
+    <p class="lede">Every question both platforms trade, sorted by how far apart their prices are. A gap can mean one side has news the other hasn’t priced, different rules, or different traders. Thin markets are left out.</p>
+  </section>
+  <section class="gapcards"><div class="cards" id="gapCards" data-n="24"><p class="empty">Loading…</p></div></section>
+  <section class="twocol">
+    <article class="panel note"><h3>Is a gap free money?</h3><p>Rarely. Fees on both sides, money stuck until the market settles, and small differences in how each platform words and settles the question eat most gaps. Read both rule texts before you trade either side.</p></article>
+    <article class="panel note"><h3>Why do gaps happen?</h3><p>Different traders, different access (Kalshi is US-regulated, Polymarket runs a US and an international exchange), different fees and different settlement rules. Big gaps usually close when news lands. <a href="/learn">More on why prices differ</a>.</p></article>
+  </section>
+
+  <footer class="foot">
+    <div><a class="logo small" href="/"><img src="/assets/logo-mark.svg" alt="" width="24" height="24"><span class="word">Odds<i>watch</i></span></a>
+      <p>Same event, different odds. Polymarket and Kalshi side by side.</p></div>
+    <nav aria-label="Footer"><a href="/">Odds</a><a href="/gaps">Gaps</a><a href="/midterms">Midterms</a><a href="/alerts">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a></nav>
+    <nav class="topicnav" aria-label="Topics"><span>Topics</span><a href="/topic/politics">Politics</a><a href="/topic/economy">Economy</a><a href="/topic/sports">Sports</a><a href="/topic/crypto">Crypto</a><a href="/topic/culture">Culture</a></nav>
+    <p class="fine">Prices from the public data of <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> and <a href="https://kalshi.com" target="_blank" rel="noopener">Kalshi</a>, refreshed every few minutes. Oddswatch is independent and not affiliated with either. No paid placements. Not financial advice, and prediction markets are not legal everywhere. Sister sites: <a href="https://www.usetidewatch.org" target="_blank" rel="noopener">Tidewatch</a>, <a href="https://usepegwatch.vercel.app" target="_blank" rel="noopener">Pegwatch</a> and <a href="https://ratewatch-lemon.vercel.app" target="_blank" rel="noopener">Ratewatch</a>.</p>
+  </footer>
+</div>
+<script src="/bg.js?v=1072d09885" defer></script>
+<script src="/app.js?v=748b7f3762" defer></script>
+</body>
+</html>
