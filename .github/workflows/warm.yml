@@ -46,5 +46,6 @@ jobs:
           for P in home gaps midterms; do curl -sS -m 60 -o /dev/null "$SITE/api/og?p=$P" -w "$P image: HTTP %{http_code} %{content_type} %{size_download}B %{redirect_url}\n"; done
           curl -sS -m 30 -o /dev/null "$SITE/topic/politics" -w "topic page: HTTP %{http_code} %{size_download}B\n"
           curl -sS -m 30 -o /dev/null "$SITE/record" -w "record page: HTTP %{http_code} %{size_download}B\n"
-          curl -sS -m 30 "$SITE/api/record" | head -c 600; echo
+          curl -sS -m 30 "$SITE/api/record" | head -c 300; echo
+          curl -sS -m 30 "$SITE/api/movers" | python3 -c "import json,sys; d=json.load(sys.stdin); print('movers lead:', d.get('lead') and d['lead']['n'], 'pairs', d.get('lead') and d['lead']['pairs']); [print(f'  {h}h lag', x['lead'], x['d'], x['t'][:50], x.get('o') or '') for h in (6, 24) for x in d[f'h{h}']['lag'][:4]]" || echo "movers: failed"
           curl -sS -m 30 "$SITE/sitemap-questions.xml" | grep -c "<loc>" | sed 's/^/sitemap questions: /'
