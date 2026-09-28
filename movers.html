@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Odds and gap alerts on Telegram · Oddswatch</title>
-<meta name="description" content="Free Telegram alerts when a prediction market moves or Polymarket and Kalshi drift apart.">
-<link rel="canonical" href="https://oddswatch.vercel.app/alerts">
+<title>Who moved first: Polymarket vs Kalshi · Oddswatch</title>
+<meta name="description" content="Where one prediction market has moved and the other hasn’t caught up yet, and which one tends to price the news first.">
+<link rel="canonical" href="https://oddswatch.vercel.app/movers">
 <link rel="icon" type="image/svg+xml" href="/assets/logo-mark.svg">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Oddswatch">
-<meta property="og:title" content="Odds and gap alerts on Telegram · Oddswatch">
-<meta property="og:description" content="Free Telegram alerts when a prediction market moves or Polymarket and Kalshi drift apart.">
-<meta property="og:url" content="https://oddswatch.vercel.app/alerts">
+<meta property="og:title" content="Who moved first: Polymarket vs Kalshi · Oddswatch">
+<meta property="og:description" content="Where one prediction market has moved and the other hasn’t caught up yet, and which one tends to price the news first.">
+<meta property="og:url" content="https://oddswatch.vercel.app/movers">
 <meta property="og:image" content="https://oddswatch.vercel.app/api/og?p=home">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -43,7 +43,7 @@
   --f-mono:"Geist Mono";
 }</style>
 </head>
-<body data-page="alerts" data-bot="useoddwatchbot">
+<body data-page="movers" data-bot="useoddwatchbot">
 <div class="seam" aria-hidden="true"></div>
 <canvas id="lines" aria-hidden="true"></canvas>
 <span class="edge l" aria-hidden="true">Polymarket</span><span class="edge r" aria-hidden="true">Kalshi</span>
@@ -53,29 +53,30 @@
 </header>
 <main class="wrap">
   <section class="mirror pagehead">
-    <p class="eyebrow center">Alerts</p>
-    <h1 class="split"><span class="l">Know when the odds</span><span class="r"><em>move.</em></span></h1>
-    <p class="lede center">Free Telegram messages when a question moves, when Polymarket and Kalshi drift apart, and a short daily note of the biggest gaps.</p>
+    <p class="eyebrow center">Movers</p>
+    <h1 class="split"><span class="l">Who moved</span><span class="r"><em>first?</em></span></h1>
+    <p class="lede center">When news lands, one market usually reprices before the other. Here are the questions where one platform has moved and the other hasn’t caught up yet, and a week’s count of which one tends to go first.</p>
+  </section>
+  <section class="mirror stats score" id="leadScore" aria-live="polite"><p class="empty center">Loading…</p></section>
+  <p class="fine center narrow" id="leadNote"></p>
+  <section class="ledgerwrap" aria-labelledby="lagH">
+    <div class="ledgerhead center"><h2 id="lagH">Still <em>catching up</em></h2>
+      <p class="sub narrow center">One platform moved at least 4 points and the other less than half as far, or the other way. The number on the seam is how far apart their moves are.</p>
+      <div class="controls"><div class="sorts" id="window" role="group" aria-label="Time window"><button data-h="6" aria-pressed="true">Last 6 hours</button><button data-h="24">Last 24 hours</button></div></div></div>
+    <div class="ledgerkey" aria-hidden="true"><span class="l"><i class="key poly"></i>Polymarket</span><span class="m">lag</span><span class="r">Kalshi<i class="key kalshi"></i></span></div>
+    <ol class="ledger movrows" id="lagRows"><li class="empty center">Loading…</li></ol>
+  </section>
+  <section class="ledgerwrap" aria-labelledby="togH">
+    <div class="ledgerhead center"><h2 id="togH">Moved <em>together</em></h2><p class="sub">Both platforms moved at least 4 points the same way.</p></div>
+    <ol class="ledger movrows compact" id="togRows"><li class="empty center">Loading…</li></ol>
+  </section>
+  <section class="ledgerwrap" aria-labelledby="ledH">
+    <div class="ledgerhead center"><h2 id="ledH">Recent leads</h2><p class="sub">A jump on one platform that the other followed within three hours.</p></div>
+    <ol class="leadlist" id="leadRows"><li class="empty center">Loading…</li></ol>
   </section>
   <section class="dialogue">
-    <article class="qa">
-      <h3>Gap alerts</h3>
-      <p>Tap the bell on any question, or send <code>/gap senate 5</code> to hear when Polymarket and Kalshi are 5 points or more apart on the Senate.</p>
-      <p><a class="btn primary" href="https://t.me/useoddwatchbot" target="_blank" rel="noopener">Open @useoddwatchbot</a></p>
-    </article>
-    <article class="qa">
-      <h3>Move alerts</h3>
-      <p>Send <code>/move fed 10</code> to hear when the odds on a question move 10 points from where they are now, on either platform.</p>
-    </article>
-    <article class="qa">
-      <h3>Daily gaps</h3>
-      <p>Every evening: the five biggest gaps between Polymarket and Kalshi on liquid questions, and the biggest moves of the day.</p>
-      <p><a class="btn" href="https://t.me/useoddwatchbot?start=daily" target="_blank" rel="noopener">Get the daily gaps</a></p>
-    </article>
-    <article class="qa">
-      <h3>How it works</h3>
-      <p>We check every 10 minutes. An alert fires once, then waits until the gap has closed back 2 points before it can fire again, so a question hovering at your level doesn’t flood you. Send <code>/list</code> to see or remove alerts and <code>/stop</code> to remove everything.</p>
-    </article>
+    <article class="qa"><h3>What does a lag mean?</h3><p>That one market has reacted to something the other hasn’t priced yet, or that one side’s move was noise. Lags on busy questions usually close within hours, so they’re a sign of where the news is landing first, not a promise.</p></article>
+    <article class="qa"><h3>How is the lead counted?</h3><p>From the hourly prices of the past week: each time one platform jumped 3 points or more in an hour while the other barely moved, and the other then moved the same way by at least half as much within three hours, the first one gets the lead. Jumps in the same hour count as a tie. Thin, live and weather questions are left out.</p></article>
   </section>
 
 </main>
@@ -87,7 +88,7 @@
 </footer>
 <nav class="dock" aria-label="Main">
   <button class="find" id="openFind" type="button" aria-label="Search every question"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Search</span><kbd>/</kbd></button>
-  <a href="/">Odds</a><a href="/gaps">Gaps</a><a href="/movers">Movers</a><a href="/record">Record</a><a href="/midterms">Midterms</a><a href="/alerts" aria-current="page">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a>
+  <a href="/">Odds</a><a href="/gaps">Gaps</a><a href="/movers" aria-current="page">Movers</a><a href="/record">Record</a><a href="/midterms">Midterms</a><a href="/alerts">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a>
 </nav>
 <div class="finder" id="finder" hidden>
   <div class="finderbox" role="dialog" aria-modal="true" aria-label="Search">

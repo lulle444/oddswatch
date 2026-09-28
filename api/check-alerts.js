@@ -8,6 +8,7 @@ const {board: getBoard} = require("../lib/odds");
 const H = require("../lib/history");
 const A = require("../lib/alerts");
 const R = require("../lib/record");
+const M = require("../lib/movers");
 
 const DAILY_HOUR = 17;   // 17:00 UTC: afternoon in New York, evening in Denmark
 
@@ -20,6 +21,7 @@ module.exports = async function handler(req, res){
     const board = await getBoard({fresh: true}), out = {pairs: board.pairs.length, ms: board.ms};
     out.saved = await H.save(board);
     out.record = await R.step(board).catch(e => ({error: String(e.message || e)}));
+    out.lead = await M.saveLead(board).catch(e => ({error: String(e.message || e)}));
     if (!process.env.TELEGRAM_BOT_TOKEN) return res.status(200).json({...out, skipped: "no bot token yet"});
 
     let sent = 0, gone = 0;

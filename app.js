@@ -225,6 +225,48 @@
   }
   record();
 
+  /* ---------- movers: who moved first ---------- */
+  async function movers(){
+    const box = $("#leadScore");
+    if (!box) return;
+    let d;
+    try { d = await (await fetch("/api/movers")).json(); if (d.error) throw 0; } catch (e) { box.innerHTML = `<p class="empty center">The movers couldn’t load. Refresh in a minute.</p>`; return; }
+    const L = d.lead;
+    if (L){
+      const tot = L.n.poly + L.n.kalshi, pct = x => tot ? Math.round(x / tot * 100) + "%" : "–";
+      box.innerHTML = `<div class="half l stat"><small>Polymarket moved first</small><b class="poly">${L.n.poly}</b><small>${pct(L.n.poly)} of leads</small></div>
+        <div class="mid stat"><small>Past week</small><b>${tot + L.n.same}</b><small>${L.n.same} in the same hour</small></div>
+        <div class="half r stat"><small>Kalshi moved first</small><b class="kalshi">${L.n.kalshi}</b><small>${pct(L.n.kalshi)} of leads</small></div>`;
+      $("#leadNote").textContent = `Across ${L.pairs} liquid questions, from hourly prices. Updated ${new Date(L.t).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}.`;
+      const when = t => new Date(t).toLocaleString([], {weekday: "short", hour: "2-digit", minute: "2-digit"});
+      $("#leadRows").innerHTML = L.recent.map(x => `<li><a ${x.s ? `href="/q/${x.s}"` : ""}><span class="lw ${x.who}">${x.who === "poly" ? "Polymarket" : "Kalshi"} first</span>
+        <span class="lt"><b>${esc(x.t || x.id)}</b>${x.o ? `<small>${esc(x.o)}</small>` : ""}</span>
+        <span class="ln">${gp(x.d)} pts, then ${x.who === "poly" ? "Kalshi" : "Polymarket"} ${gp(x.fd)} within ${x.after}h<small>${when(x.at)}</small></span></a></li>`).join("")
+        || `<li class="empty center">No clear lead yet this week.</li>`;
+    } else {
+      box.innerHTML = `<p class="empty center">The week’s lead count is worked out every hour; the first one arrives shortly.</p>`;
+      $("#leadRows").innerHTML = `<li class="empty center">Arrives with the first count.</li>`;
+    }
+    const chg = v => `<small class="chg ${v > 0 ? "up" : v < 0 ? "down" : ""}">${v > 0 ? "▲" : v < 0 ? "▼" : ""} ${Math.abs(v).toFixed(1)}</small>`;
+    const row = (x, lagNum) => {
+      const r = {poly: {p: x.p[0]}, kalshi: {p: x.p[1]}};
+      return `<li><a class="lrow" href="/q/${x.s}">
+        <span class="lq"><b>${esc(x.t)}</b>${x.o ? `<small>${esc(x.o)}</small>` : ""}</span>
+        <span class="ls l">${chg(x.d[0])}<b class="${x.lead === "poly" && lagNum ? "led" : ""}">${pc(x.p[0])}</b></span>
+        <span class="lg${lagNum ? " big" : ""}">${lagNum ? x.lag.toFixed(1) : gp(x.gap)}</span>
+        <span class="ls r"><b class="${x.lead === "kalshi" && lagNum ? "led" : ""}">${pc(x.p[1])}</b>${chg(x.d[1])}</span>${bars(r)}</a></li>`;
+    };
+    const draw = h => {
+      const w = h === 24 ? d.h24 : d.h6;
+      $("#lagRows").innerHTML = w.lag.map(x => row(x, true)).join("") || `<li class="empty center">Neither platform is lagging the other right now.</li>`;
+      $("#togRows").innerHTML = w.together.map(x => row(x, false)).join("") || `<li class="empty center">Nothing moved 4 points on both in this window.</li>`;
+    };
+    const win = $("#window");
+    win.onclick = e => { const x = e.target.closest("button"); if (!x) return; win.querySelectorAll("button").forEach(y => y.setAttribute("aria-pressed", y === x)); draw(+x.dataset.h); };
+    draw(6);
+  }
+  movers();
+
   function lonely(b){
     const li = (x, cls) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a><small>${cls === "poly" ? usd(x.vol24) : big(x.vol24)}</small></li>`;
     if ($("#onlyPoly")) $("#onlyPoly").innerHTML = b.onlyPoly.slice(0, 8).map(x => li(x, "poly")).join("");
@@ -247,7 +289,7 @@
   }
 
   /* ---------- the finder: search every question and page from anywhere ---------- */
-  const PAGES = [["/", "Every question on both"], ["/gaps", "Biggest gaps"], ["/record", "Who was right"], ["/midterms", "US midterms"], ["/alerts", "Telegram alerts"], ["/learn", "Why prices differ"], ["/about", "About"],
+  const PAGES = [["/", "Every question on both"], ["/gaps", "Biggest gaps"], ["/movers", "Who moved first"], ["/record", "Who was right"], ["/midterms", "US midterms"], ["/alerts", "Telegram alerts"], ["/learn", "Why prices differ"], ["/about", "About"],
     ["/topic/politics", "Politics"], ["/topic/economy", "Economy"], ["/topic/sports", "Sports"], ["/topic/crypto", "Crypto"], ["/topic/culture", "Culture"]];
   let BOARD = null;
   function finder(){

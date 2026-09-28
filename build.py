@@ -44,7 +44,7 @@ LOGO = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64
 os.makedirs(os.path.join(ROOT, "assets"), exist_ok=True)
 open(os.path.join(ROOT, "assets", "logo-mark.svg"), "w").write(LOGO)
 
-NAV = [("/", "Odds"), ("/gaps", "Gaps"), ("/record", "Record"), ("/midterms", "Midterms"), ("/alerts", "Alerts"), ("/learn", "Learn"), ("/about", "About")]
+NAV = [("/", "Odds"), ("/gaps", "Gaps"), ("/movers", "Movers"), ("/record", "Record"), ("/midterms", "Midterms"), ("/alerts", "Alerts"), ("/learn", "Learn"), ("/about", "About")]
 TOPICS = [("politics", "Politics"), ("economy", "Economy"), ("sports", "Sports"), ("crypto", "Crypto"), ("culture", "Culture")]
 BOT = str(B.get("telegram") or "").lstrip("@")
 XLINK = f'<a class="navx" href="https://x.com/{B["x"]}" target="_blank" rel="noopener me" aria-label="Follow {{{{name}}}} on X">X</a>' if B.get("x") else ""
@@ -191,6 +191,31 @@ MIDTERMS = head("US midterms · November 3, 2026", "The midterms, <em>priced twi
   <p class="fine center narrow">We count a question as a midterm question when it mentions the House, the Senate, a governor or a 2026 election. Races that only one platform lists are not shown.</p>
 """
 
+MOVERS = head("Movers", "Who moved <em>first?</em>",
+              "When news lands, one market usually reprices before the other. Here are the questions where one platform has moved and the other hasn’t caught up yet, and a week’s count of which one tends to go first.") + """
+  <section class="mirror stats score" id="leadScore" aria-live="polite"><p class="empty center">Loading…</p></section>
+  <p class="fine center narrow" id="leadNote"></p>
+  <section class="ledgerwrap" aria-labelledby="lagH">
+    <div class="ledgerhead center"><h2 id="lagH">Still <em>catching up</em></h2>
+      <p class="sub narrow center">One platform moved at least 4 points and the other less than half as far, or the other way. The number on the seam is how far apart their moves are.</p>
+      <div class="controls"><div class="sorts" id="window" role="group" aria-label="Time window"><button data-h="6" aria-pressed="true">Last 6 hours</button><button data-h="24">Last 24 hours</button></div></div></div>
+    <div class="ledgerkey" aria-hidden="true"><span class="l"><i class="key poly"></i>Polymarket</span><span class="m">lag</span><span class="r">Kalshi<i class="key kalshi"></i></span></div>
+    <ol class="ledger movrows" id="lagRows"><li class="empty center">Loading…</li></ol>
+  </section>
+  <section class="ledgerwrap" aria-labelledby="togH">
+    <div class="ledgerhead center"><h2 id="togH">Moved <em>together</em></h2><p class="sub">Both platforms moved at least 4 points the same way.</p></div>
+    <ol class="ledger movrows compact" id="togRows"><li class="empty center">Loading…</li></ol>
+  </section>
+  <section class="ledgerwrap" aria-labelledby="ledH">
+    <div class="ledgerhead center"><h2 id="ledH">Recent leads</h2><p class="sub">A jump on one platform that the other followed within three hours.</p></div>
+    <ol class="leadlist" id="leadRows"><li class="empty center">Loading…</li></ol>
+  </section>
+  <section class="dialogue">
+    <article class="qa"><h3>What does a lag mean?</h3><p>That one market has reacted to something the other hasn’t priced yet, or that one side’s move was noise. Lags on busy questions usually close within hours, so they’re a sign of where the news is landing first, not a promise.</p></article>
+    <article class="qa"><h3>How is the lead counted?</h3><p>From the hourly prices of the past week: each time one platform jumped 3 points or more in an hour while the other barely moved, and the other then moved the same way by at least half as much within three hours, the first one gets the lead. Jumps in the same hour count as a tie. Thin, live and weather questions are left out.</p></article>
+  </section>
+"""
+
 RECORD = head("Record", "Who called it <em>better?</em>",
               "Every question both platforms priced, once it settles: which market had put the higher chance on what actually happened, a day before the end, or just before kick-off for a game.") + """
   <section class="mirror stats score" id="score" aria-live="polite"><p class="empty center">Loading…</p></section>
@@ -298,6 +323,7 @@ NOTFOUND = head("404", "That page <em>isn’t here.</em>", "The link may be old,
 PAGES = [
     ("index.html", "/", "{{name}}: Polymarket vs Kalshi odds, side by side", B["description"], HOME),
     ("gaps.html", "/gaps", "Biggest gaps between Polymarket and Kalshi right now · {{name}}", "The questions where Polymarket and Kalshi disagree most, live, on liquid markets only.", GAPS, "/api/og?p=gaps"),
+    ("movers.html", "/movers", "Who moved first: Polymarket vs Kalshi · {{name}}", "Where one prediction market has moved and the other hasn’t caught up yet, and which one tends to price the news first.", MOVERS),
     ("record.html", "/record", "Polymarket vs Kalshi: who called it better? · {{name}}", "Every question both prediction markets priced, once it settles: which one was closer to what happened.", RECORD),
     ("midterms.html", "/midterms", "2026 midterm odds: Polymarket vs Kalshi · {{name}}", "Who wins the House, the Senate and the closest 2026 races, priced on Polymarket and Kalshi side by side, live.", MIDTERMS, "/api/og?p=midterms"),
     ("alerts.html", "/alerts", "Odds and gap alerts on Telegram · {{name}}", "Free Telegram alerts when a prediction market moves or Polymarket and Kalshi drift apart.", ALERTS_ON if BOT else ALERTS_SOON),

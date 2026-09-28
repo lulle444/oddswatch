@@ -6,6 +6,7 @@
     "api/page.js": {"includeFiles": "{templates/pair.html,templates/topic.html,404.html}", "maxDuration": 60},
     "api/odds.js": {"maxDuration": 60},
     "api/check-alerts.js": {"maxDuration": 60},
+    "api/movers.js": {"maxDuration": 30},
     "api/telegram.js": {"maxDuration": 60}
   },
   "rewrites": [
