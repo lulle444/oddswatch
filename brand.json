@@ -1,29 +1,32 @@
 {
   "_note": "Everything that names or colors the site lives here. Change it, then run: python3 build.py",
   "name": "Oddswatch",
-  "wordmark": ["Odds", "watch"],
+  "wordmark": [
+    "Odds",
+    "watch"
+  ],
   "tagline": "Same event, different odds. Polymarket and Kalshi side by side.",
   "description": "The same question priced on Polymarket and Kalshi, side by side and live: where the two biggest prediction markets agree, where they don’t, and by how much.",
   "domain": "oddswatch.vercel.app",
   "x": "",
   "telegram": "useoddwatchbot",
   "colors": {
-    "bg": "#F4F6FA",
-    "bg2": "#E8ECF3",
+    "bg": "#F7F6F2",
+    "bg2": "#EEECE6",
     "panel": "#FFFFFF",
-    "line": "#DCE2EC",
-    "ink": "#0E1526",
-    "muted": "#5A6478",
-    "poly": "#2F5BEA",
-    "kalshi": "#0B8F63",
-    "gap": "#E4572E",
-    "accent": "#0E1526",
-    "up": "#0B8F63",
-    "down": "#C4322A"
+    "line": "#E5E2DA",
+    "ink": "#111114",
+    "muted": "#6D6A64",
+    "poly": "#2C4FCF",
+    "kalshi": "#0A7A56",
+    "gap": "#C2410C",
+    "accent": "#A8844E",
+    "up": "#0A7A56",
+    "down": "#B42318"
   },
   "fonts": {
-    "display": "Bricolage Grotesque",
-    "body": "Inter",
-    "mono": "DM Mono"
+    "display": "Instrument Serif",
+    "body": "Geist",
+    "mono": "Geist Mono"
   }
 }

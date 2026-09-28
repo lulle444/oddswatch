@@ -44,9 +44,9 @@ function pairPage(b, r){
   const siblings = b.pairs.filter(x => x.title === r.title && x.id !== r.id && x.kalshi.event === r.kalshi.event).sort((x, y) => y.poly.p + y.kalshi.p - x.poly.p - x.kalshi.p);
   const row = (h, p, k) => `<span class="h">${h}</span><span class="v" style="color:var(--b-poly)">${p}</span><span class="v" style="color:var(--b-kalshi)">${k}</span>`;
   const chg = (now, prev) => prev == null ? "–" : gp((now - prev) * 100) + " pts";
-  const bellBtn = BOT ? `<a class="btn" href="https://t.me/${BOT}?start=g_${encodeURIComponent(startParam(r.id))}" target="_blank" rel="noopener">🔔 Alert me</a>` : "";
+  const bellBtn = BOT ? `<a class="btn" href="https://t.me/${BOT}?start=g_${encodeURIComponent(startParam(r.id))}" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg> Alert me</a>` : "";
   const shareText = encodeURIComponent(`${r.title}${r.outcome ? " · " + r.outcome : ""}: Polymarket ${pc(r.poly.p)}, Kalshi ${pc(r.kalshi.p)}.`);
-  const main = `  <section class="pagehead">
+  const main = `  <section class="pagehead qhead">
     <p class="eyebrow">${esc(catName(r.cat))} · ends ${esc(day(r.end))}</p>
     <h1>${esc(r.title)}</h1>
     <p class="lede">${r.outcome ? `<b>${esc(r.outcome)}</b>. ` : ""}${esc(summary(r))}</p>

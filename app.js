@@ -9,7 +9,7 @@
   const big = v => v >= 1e9 ? (v / 1e9).toFixed(1) + "B" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? Math.round(v / 1e3) + "k" : String(Math.round(v || 0));
   const usd = v => "$" + big(v);
   const startParam = id => String(id).replace(/\./g, "_");
-  const bell = r => BOT ? `<a class="bell" href="https://t.me/${BOT}?start=g_${encodeURIComponent(startParam(r.id))}" target="_blank" rel="noopener" title="Telegram alert when the gap or odds move" aria-label="Alert me about ${esc(r.title)}">🔔</a>` : "";
+  const bell = r => BOT ? `<a class="bell" href="https://t.me/${BOT}?start=g_${encodeURIComponent(startParam(r.id))}" target="_blank" rel="noopener" title="Telegram alert when the gap or odds move" aria-label="Alert me about ${esc(r.title)}"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg></a>` : "";
   function ends(iso){
     const t = Date.parse(iso);
     if (!isFinite(t)) return "–";

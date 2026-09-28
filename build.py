@@ -23,8 +23,8 @@ def fill(s):
 # ---------- brand.css: the only place colors and fonts are set ----------
 css = [":root{"] + [f"  --b-{k.replace('_', '-')}:{v};" for k, v in C.items()] + [f'  --f-{k}:"{v}";' for k, v in F.items()] + ["}"]
 open(os.path.join(ROOT, "brand.css"), "w").write("/* Written by build.py from brand.json. Edit brand.json instead. */\n" + "\n".join(css) + "\n")
-FONTS = ("https://fonts.googleapis.com/css2?family=" + F["display"].replace(" ", "+") + ":opsz,wght@12..96,500..800"
-         + "&family=" + F["body"].replace(" ", "+") + ":wght@400;500;600&family=" + F["mono"].replace(" ", "+") + ":wght@400;500&display=swap")
+FONTS = ("https://fonts.googleapis.com/css2?family=" + F["display"].replace(" ", "+") + ":ital@0;1"
+         + "&family=" + F["body"].replace(" ", "+") + ":wght@300;400;500;600&family=" + F["mono"].replace(" ", "+") + ":wght@300;400;500&display=swap")
 BRAND_CSS = "\n".join(css)
 
 
@@ -37,7 +37,7 @@ LOGO = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64
   <rect width="64" height="64" rx="15" fill="{C['ink']}"/>
   <path d="M12 40 L24 30 L34 34 L52 18" fill="none" stroke="{C['poly']}" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M12 48 L24 40 L34 43 L52 30" fill="none" stroke="#2FD39A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M52 21.5v5" stroke="{C['gap']}" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M52 21.5v5" stroke="{C['accent']}" stroke-width="3.4" stroke-linecap="round"/>
   <circle cx="52" cy="18" r="3.6" fill="#FFFFFF"/>
 </svg>
 """

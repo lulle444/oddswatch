@@ -21,7 +21,7 @@ const h = (style, ...children) => ({type: "div", props: {style: {display: "flex"
 let fonts;
 async function loadFonts(){
   if (fonts) return fonts;
-  const want = [[F.display, 700], [F.body, 500], [F.body, 600], [F.mono, 500]];
+  const want = [[F.display, 400], [F.body, 400], [F.body, 500], [F.body, 600], [F.mono, 500]];
   const out = [];
   await Promise.all(want.map(async ([name, weight]) => {
     try {
@@ -48,11 +48,11 @@ function frame(eyebrow, path, ...body){
     h({alignItems: "center", justifyContent: "space-between"},
       h({alignItems: "center"},
         {type: "img", props: {src: logoUri(), width: 50, height: 50, style: {marginRight: 14, borderRadius: 12}}},
-        h({fontFamily: F.display, fontWeight: 700, fontSize: 36, letterSpacing: -1}, w1, h({color: K.poly}, w2))),
+        h({fontFamily: F.display, fontWeight: 400, fontSize: 36, letterSpacing: -0.5}, w1, h({color: K.accent}, w2))),
       h({fontFamily: F.mono, fontWeight: 500, fontSize: 19, letterSpacing: 2.5, color: K.muted, textTransform: "uppercase"}, eyebrow)),
     h({flexDirection: "column", flex: 1}, ...body),
     h({fontSize: 19, color: K.muted, justifyContent: "space-between", borderTop: `1.5px solid ${K.line}`, paddingTop: 14},
-      h({fontFamily: F.mono, fontWeight: 500}, B.domain + path), h({}, (B.x ? "@" + B.x + " · " : "") + "Polymarket vs Kalshi, live")));
+      h({fontFamily: F.mono, fontWeight: 500}, cut(B.domain + path, 58)), h({}, (B.x ? "@" + B.x + " · " : "") + "Polymarket vs Kalshi, live")));
 }
 
 // The two prices, big, with the gap between them
@@ -61,12 +61,12 @@ function duel(r, size = 120){
   return h({flexDirection: "column"},
     h({alignItems: "flex-end", justifyContent: "space-between"},
       h({flexDirection: "column"}, h({fontSize: 24, color: K.muted, fontWeight: 500}, "Polymarket"),
-        h({fontFamily: F.mono, fontWeight: 500, fontSize: size, lineHeight: 1, color: K.poly, letterSpacing: -4}, pc(r.poly.p))),
+        h({fontFamily: F.display, fontWeight: 400, fontSize: size * 1.12, lineHeight: 1, color: K.poly, letterSpacing: -2}, pc(r.poly.p))),
       h({flexDirection: "column", alignItems: "center", marginBottom: 14, backgroundColor: rgba(K.gap, 0.12), color: K.gap, borderRadius: 16, padding: "10px 22px"},
         h({fontSize: 16, letterSpacing: 2, textTransform: "uppercase", fontWeight: 600}, "gap"),
         h({fontFamily: F.mono, fontWeight: 500, fontSize: 40}, gp(r.gap) + " pts")),
       h({flexDirection: "column", alignItems: "flex-end"}, h({fontSize: 24, color: K.muted, fontWeight: 500}, "Kalshi"),
-        h({fontFamily: F.mono, fontWeight: 500, fontSize: size, lineHeight: 1, color: K.kalshi, letterSpacing: -4}, pc(r.kalshi.p)))),
+        h({fontFamily: F.display, fontWeight: 400, fontSize: size * 1.12, lineHeight: 1, color: K.kalshi, letterSpacing: -2}, pc(r.kalshi.p)))),
     h({position: "relative", height: 22, width: W, backgroundColor: K.bg2, borderRadius: 11, marginTop: 26},
       h({position: "absolute", left: W * lo / 100, width: Math.max(8, W * (hi - lo) / 100), top: 0, height: 22, backgroundColor: rgba(K.gap, 0.33), borderRadius: 11}),
       h({position: "absolute", left: W * b / 100 - 5, top: -7, width: 10, height: 36, borderRadius: 5, backgroundColor: K.kalshi, border: `3px solid ${K.bg}`}),
@@ -91,8 +91,8 @@ const CARDS = {
     const b = await getBoard(), r = liquidGaps(b, 1)[0];
     return frame("Same event, different odds", "",
       h({flexDirection: "column", marginTop: 34},
-        h({fontFamily: F.display, fontWeight: 700, fontSize: 68, lineHeight: 1.02, letterSpacing: -2}, "Polymarket vs Kalshi,"),
-        h({fontFamily: F.display, fontWeight: 700, fontSize: 68, lineHeight: 1.02, letterSpacing: -2, color: K.poly}, "side by side."),
+        h({fontFamily: F.display, fontWeight: 400, fontSize: 68, lineHeight: 1.02, letterSpacing: -2}, "Polymarket vs Kalshi,"),
+        h({fontFamily: F.display, fontWeight: 400, fontSize: 68, lineHeight: 1.02, letterSpacing: -2, color: K.poly}, "side by side."),
         h({fontSize: 26, color: K.muted, marginTop: 18}, `${b.pairs.length} questions priced on both. The biggest gap right now:`)),
       r ? h({flexDirection: "column", marginTop: 26},
         h({fontSize: 27, fontWeight: 600, marginBottom: 6}, cut(r.title + (r.outcome ? " · " + r.outcome : ""), 70)),
@@ -104,7 +104,7 @@ const CARDS = {
     const b = await getBoard(), rows = liquidGaps(b, 5);
     if (!rows.length) return null;
     return frame("Biggest gaps right now", "/gaps",
-      h({fontFamily: F.display, fontWeight: 700, fontSize: 52, letterSpacing: -1.5, marginTop: 26, marginBottom: 18}, "Where the two markets disagree"),
+      h({fontFamily: F.display, fontWeight: 400, fontSize: 52, letterSpacing: -1.5, marginTop: 26, marginBottom: 18}, "Where the two markets disagree"),
       gapList(rows));
   },
   async midterms(){
@@ -113,11 +113,11 @@ const CARDS = {
     const rows = [["House", /\bhouse\b/i], ["Senate", /\bsenate\b/i]].map(([n, re]) => ({n, d: find(re, "democrat"), r: find(re, "republican")})).filter(x => x.d || x.r);
     if (!rows.length) return null;
     const bar = p => h({height: 44, width: 760, borderRadius: 10, backgroundColor: K.bg2, overflow: "hidden"},
-      h({width: Math.round(760 * p), height: 44, backgroundColor: "#2C5BB8", alignItems: "center", paddingLeft: 14, color: "#fff", fontFamily: F.mono, fontWeight: 500, fontSize: 22}, "D " + pc(p)),
-      h({flex: 1, height: 44, backgroundColor: "#B83A3A", alignItems: "center", justifyContent: "flex-end", paddingRight: 14, color: "#fff", fontFamily: F.mono, fontWeight: 500, fontSize: 22}, "R " + pc(1 - p)));
+      h({width: Math.round(760 * p), height: 44, backgroundColor: "#2B4A8F", alignItems: "center", paddingLeft: 14, color: "#fff", fontFamily: F.mono, fontWeight: 500, fontSize: 22}, "D " + pc(p)),
+      h({flex: 1, height: 44, backgroundColor: "#9E3A36", alignItems: "center", justifyContent: "flex-end", paddingRight: 14, color: "#fff", fontFamily: F.mono, fontWeight: 500, fontSize: 22}, "R " + pc(1 - p)));
     const dem = (x, side) => x.d ? x.d[side].p : 1 - x.r[side].p;
     return frame("US midterms · Nov 3", "/midterms",
-      h({fontFamily: F.display, fontWeight: 700, fontSize: 56, letterSpacing: -1.5, marginTop: 22, marginBottom: 14}, "Who wins Congress, priced twice"),
+      h({fontFamily: F.display, fontWeight: 400, fontSize: 56, letterSpacing: -1.5, marginTop: 22, marginBottom: 14}, "Who wins Congress, priced twice"),
       ...rows.map(x => h({flexDirection: "column", marginTop: 14},
         h({fontSize: 26, fontWeight: 600, marginBottom: 8}, x.n),
         h({alignItems: "center", marginBottom: 8}, h({width: 190, fontSize: 22, color: K.poly, fontWeight: 600}, "Polymarket"), bar(dem(x, "poly"))),
@@ -128,7 +128,7 @@ const CARDS = {
     const rows = b.pairs.filter(r => r.cat === t && !r.thin).sort((x, y) => (y.poly.vol24 + y.kalshi.vol24) - (x.poly.vol24 + x.kalshi.vol24)).slice(0, 5);
     if (!rows.length) return null;
     return frame(catName(t), "/topic/" + t,
-      h({fontFamily: F.display, fontWeight: 700, fontSize: 52, letterSpacing: -1.5, marginTop: 26, marginBottom: 18}, `${catName(t)}, priced twice`),
+      h({fontFamily: F.display, fontWeight: 400, fontSize: 52, letterSpacing: -1.5, marginTop: 26, marginBottom: 18}, `${catName(t)}, priced twice`),
       gapList(rows));
   },
   async q(q){
@@ -137,7 +137,7 @@ const CARDS = {
     const t = r.title.length > 60 ? 44 : 56;
     return frame(catName(r.cat), "/q/" + r.slug,
       h({flexDirection: "column", marginTop: 26},
-        h({fontFamily: F.display, fontWeight: 700, fontSize: t, lineHeight: 1.05, letterSpacing: -1.5}, cut(r.title, 90)),
+        h({fontFamily: F.display, fontWeight: 400, fontSize: t, lineHeight: 1.05, letterSpacing: -1.5}, cut(r.title, 90)),
         r.outcome ? h({fontSize: 30, color: K.muted, marginTop: 10, fontWeight: 500}, cut(r.outcome, 60)) : null),
       h({flex: 1}),
       duel(r, r.outcome ? 104 : 120),

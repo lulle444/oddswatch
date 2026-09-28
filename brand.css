@@ -1,18 +1,18 @@
 /* Written by build.py from brand.json. Edit brand.json instead. */
 :root{
-  --b-bg:#F4F6FA;
-  --b-bg2:#E8ECF3;
+  --b-bg:#F7F6F2;
+  --b-bg2:#EEECE6;
   --b-panel:#FFFFFF;
-  --b-line:#DCE2EC;
-  --b-ink:#0E1526;
-  --b-muted:#5A6478;
-  --b-poly:#2F5BEA;
-  --b-kalshi:#0B8F63;
-  --b-gap:#E4572E;
-  --b-accent:#0E1526;
-  --b-up:#0B8F63;
-  --b-down:#C4322A;
-  --f-display:"Bricolage Grotesque";
-  --f-body:"Inter";
-  --f-mono:"DM Mono";
+  --b-line:#E5E2DA;
+  --b-ink:#111114;
+  --b-muted:#6D6A64;
+  --b-poly:#2C4FCF;
+  --b-kalshi:#0A7A56;
+  --b-gap:#C2410C;
+  --b-accent:#A8844E;
+  --b-up:#0A7A56;
+  --b-down:#B42318;
+  --f-display:"Instrument Serif";
+  --f-body:"Geist";
+  --f-mono:"Geist Mono";
 }
