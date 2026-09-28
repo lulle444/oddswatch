@@ -1,13 +1,13 @@
-// The live background: a slow light runs down the seam between the two markets, and every so often a price
-// ticks out from it, blue to the Polymarket side and green to the Kalshi side. Still when the reader asks for less motion.
+// The live background: every so often a price ticks out from the middle of the page,
+// blue to the Polymarket side and green to the Kalshi side. Still when the reader asks for less motion.
 (() => {
   const cv = document.getElementById("lines");
   if (!cv) return;
   const cx = cv.getContext("2d"), css = getComputedStyle(document.documentElement);
   const col = k => css.getPropertyValue("--b-" + k).trim() || "#888";
-  const POLY = col("poly"), KAL = col("kalshi"), GOLD = col("accent");
+  const POLY = col("poly"), KAL = col("kalshi");
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let W, H, dpr, raf, y = 0, last = 0;
+  let W, H, dpr, raf, last = 0;
   const ticks = [];
   function size(){
     dpr = Math.min(2, devicePixelRatio || 1);
@@ -17,12 +17,6 @@
     const dt = Math.min(64, t - (last || t)); last = t;
     cx.clearRect(0, 0, W, H);
     const mid = W / 2;
-    // the light on the seam
-    y = (y + dt * .045 * dpr) % (H + 300 * dpr);
-    const g = cx.createLinearGradient(0, y - 260 * dpr, 0, y);
-    g.addColorStop(0, "transparent"); g.addColorStop(1, GOLD);
-    cx.globalAlpha = .55; cx.fillStyle = g; cx.fillRect(mid - dpr, y - 260 * dpr, 2 * dpr, 260 * dpr);
-    cx.globalAlpha = .9; cx.beginPath(); cx.arc(mid, y, 2.2 * dpr, 0, 7); cx.fillStyle = GOLD; cx.fill();
     // prices ticking out to each side
     if (Math.random() < dt / 900) ticks.push({y: Math.random() * H, side: Math.random() < .5 ? -1 : 1, len: (.08 + Math.random() * .3) * W / 2, a: 0});
     for (let i = ticks.length - 1; i >= 0; i--){

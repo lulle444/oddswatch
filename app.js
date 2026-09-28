@@ -33,9 +33,9 @@
   }
   const lrow = (r, meta = true) => `<li><a class="lrow${r.thin ? " thin" : ""}" href="/q/${r.slug}">
       <span class="lq"><b>${esc(r.title)}</b>${r.outcome ? `<small>${esc(r.outcome)}</small>` : ""}</span>
-      <span class="ls l">${meta ? `<small class="lm">${esc(r.cat)} · ${usd(r.poly.vol24)}</small>` : "<small></small>"}<b>${pc(r.poly.p)}</b></span>
+      <span class="ls l"><small class="dt">${esc(r.title)}</small>${meta ? `<small class="lm">${esc(r.cat)} · ${usd(r.poly.vol24)}</small>` : "<small></small>"}<b>${pc(r.poly.p)}</b></span>
       <span class="lg${Math.abs(r.gap) >= 5 && !r.thin ? " big" : ""}">${gp(r.gap)}</span>
-      <span class="ls r"><b>${pc(r.kalshi.p)}</b>${meta ? `<small class="lm">${big(r.kalshi.vol24)} ct · ${ends(r.end)}</small>` : "<small></small>"}</span>
+      <span class="ls r"><b>${pc(r.kalshi.p)}</b>${meta ? `<small class="lm">${big(r.kalshi.vol24)} ct · ${ends(r.end)}</small>` : "<small></small>"}<small class="do">${esc(r.outcome || ends(r.end))}</small></span>
       ${bars(r)}</a>${bell(r)}</li>`;
 
   function duel(r){
@@ -47,7 +47,7 @@
       </div>`;
   }
 
-  const liquid = b => b.pairs.filter(r => !r.thin && !r.live);
+  const liquid = b => b.pairs.filter(r => !r.thin && !r.live && !r.wx);
   const byGap = rows => rows.slice().sort((x, y) => Math.abs(y.gap) - Math.abs(x.gap));
 
   /* ---------- the ledger ---------- */
@@ -79,6 +79,17 @@
     const more = $("#showMore");
     if (more){ more.hidden = rows.length <= state.n; more.onclick = () => { state.n += 40; board(b, filter); }; }
   }
+  // Wide rows or tight rows; the choice is remembered on this device only
+  function density(){
+    const d = $("#density"), boxes = document.querySelectorAll(".ledger:not(.compact)");
+    if (!d) return;
+    let tight = false;
+    try { tight = localStorage.getItem("ow:tight") === "1"; } catch (e) {}
+    const set = t => { tight = t; boxes.forEach(x => x.classList.toggle("dense", t)); d.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String((x.dataset.d === "tight") === t))); try { localStorage.setItem("ow:tight", t ? "1" : "0"); } catch (e) {} };
+    d.onclick = e => { const x = e.target.closest("button"); if (x) set(x.dataset.d === "tight"); };
+    set(tight);
+  }
+  density();
   function wireBoard(b, filter){
     const q = $("#q"), s = $("#sorts");
     if (q) q.oninput = () => { state.q = q.value.trim(); state.n = 30; board(b, filter); };

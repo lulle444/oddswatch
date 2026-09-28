@@ -138,7 +138,8 @@ LEDGER = """  <section class="ledgerwrap" aria-labelledby="boardH">
       <div class="controls">
         <div class="chips" id="chips" role="group" aria-label="Topic"></div>
         <div class="sorts" id="sorts" role="group" aria-label="Sort"><button data-sort="vol" aria-pressed="true">Most traded</button><button data-sort="gap">Biggest gap</button><button data-sort="end">Ending soonest</button></div>
-        <label class="filter"><span class="visually-hidden">Filter these questions</span><input id="q" type="search" placeholder="Filter these questions" autocomplete="off"></label>
+        <div class="filterrow"><label class="filter"><span class="visually-hidden">Filter these questions</span><input id="q" type="search" placeholder="Filter these questions" autocomplete="off"></label>
+          <div class="sorts density" id="density" role="group" aria-label="Row size"><button data-d="wide" aria-pressed="true">Wide</button><button data-d="tight">Tight</button></div></div>
       </div>
     </div>
     <div class="ledgerkey" aria-hidden="true"><span class="l"><i class="key poly"></i>Polymarket</span><span class="m">gap</span><span class="r">Kalshi<i class="key kalshi"></i></span></div>
@@ -166,7 +167,8 @@ HOME = """  <section class="mirror hero">
 """
 
 GAPS = head("Gaps", "Where the markets <em>disagree.</em>",
-            "Every question both platforms trade, sorted by how far apart their prices are. A gap can mean one side has news the other hasn’t priced, different rules, or different traders. Thin markets and games already under way are left out.") + """
+            "Every question both platforms trade, sorted by how far apart their prices are. A gap can mean one side has news the other hasn’t priced, different rules, or different traders. Thin markets, games already under way and weather questions (the two often settle on different weather stations) are left out.") + """
+  <div class="gapbar"><div class="sorts density" id="density" role="group" aria-label="Row size"><button data-d="wide" aria-pressed="true">Wide</button><button data-d="tight">Tight</button></div></div>
   <ol class="ledger" id="gapLedger" data-n="30"><li class="empty center">Loading…</li></ol>
   <section class="dialogue">
     <article class="qa"><h3>Is a gap free money?</h3><p>Rarely. Fees on both sides, money stuck until the market settles, and small differences in how each platform words and settles the question eat most gaps. Read both rule texts before you trade either side.</p></article>

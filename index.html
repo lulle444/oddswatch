@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/styles.css?v=72cb714ecc">
+<link rel="stylesheet" href="/styles.css?v=993c510487">
 <style>:root{
   --b-bg:#0B0A0C;
   --b-bg2:#1A181C;
@@ -70,7 +70,8 @@
       <div class="controls">
         <div class="chips" id="chips" role="group" aria-label="Topic"></div>
         <div class="sorts" id="sorts" role="group" aria-label="Sort"><button data-sort="vol" aria-pressed="true">Most traded</button><button data-sort="gap">Biggest gap</button><button data-sort="end">Ending soonest</button></div>
-        <label class="filter"><span class="visually-hidden">Filter these questions</span><input id="q" type="search" placeholder="Filter these questions" autocomplete="off"></label>
+        <div class="filterrow"><label class="filter"><span class="visually-hidden">Filter these questions</span><input id="q" type="search" placeholder="Filter these questions" autocomplete="off"></label>
+          <div class="sorts density" id="density" role="group" aria-label="Row size"><button data-d="wide" aria-pressed="true">Wide</button><button data-d="tight">Tight</button></div></div>
       </div>
     </div>
     <div class="ledgerkey" aria-hidden="true"><span class="l"><i class="key poly"></i>Polymarket</span><span class="m">gap</span><span class="r">Kalshi<i class="key kalshi"></i></span></div>
@@ -101,7 +102,7 @@
     <ol class="findres" id="findRes"></ol>
   </div>
 </div>
-<script src="/bg.js?v=e14b7062f9" defer></script>
-<script src="/app.js?v=125dca2582" defer></script>
+<script src="/bg.js?v=95423d04c3" defer></script>
+<script src="/app.js?v=6e301c586a" defer></script>
 </body>
 </html>

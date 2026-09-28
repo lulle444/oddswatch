@@ -84,7 +84,7 @@ function gapList(rows){
       h({width: 150, justifyContent: "flex-end", fontFamily: F.mono, fontWeight: 500, color: K.gap}, gp(r.gap) + " pts"))));
 }
 
-const liquidGaps = (b, n) => b.pairs.filter(r => !r.thin && !r.live).sort((x, y) => Math.abs(y.gap) - Math.abs(x.gap)).slice(0, n);
+const liquidGaps = (b, n) => b.pairs.filter(r => !r.thin && !r.live && !r.wx).sort((x, y) => Math.abs(y.gap) - Math.abs(x.gap)).slice(0, n);
 
 const CARDS = {
   async home(){
