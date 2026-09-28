@@ -3,6 +3,7 @@ const B = require("../brand.json");
 const {send, tg, esc, webhookSecret} = require("../lib/telegram");
 const {board: getBoard} = require("../lib/odds");
 const A = require("../lib/alerts");
+const {redis} = require("../lib/store");
 
 const num = x => parseFloat(String(x || "").replace(",", ".").replace(/%|pts?|points?/i, ""));
 const both = r => `Polymarket <b>${A.pc(r.poly.p)}</b> · Kalshi <b>${A.pc(r.kalshi.p)}</b> · gap <b>${A.gp(r.gap)} pts</b>`;
@@ -50,6 +51,25 @@ async function list(chat){
     {reply_markup: {inline_keyboard: rows}});
 }
 
+// Gap alerts on every question a reader starred on the site (handed over under a short code by /api/watch)
+async function watchlist(chat, code){
+  const raw = await redis("GET", `ow:wl:${code}`);
+  if (!raw) return send(chat, `That link has expired. Open ${A.SITE}, star the questions you want and tap “Alert me on these” again.`);
+  const board = await getBoard(), ids = JSON.parse(raw), lines = [];
+  let added = 0, had = 0, full = null;
+  for (const id of ids){
+    const r = board.pairs.find(x => x.id === id);
+    if (!r) continue;
+    const thr = Math.max(5, Math.ceil(Math.abs(r.gap) + 2));
+    const res = await A.addAlert(chat, {kind: "gap", id2: r.id, label: A.label(r), thr, armed: true});
+    if (res.error){ full = res.error; break; }
+    res.dup ? had++ : added++;
+    lines.push(`• ${esc(A.label(r))}: gap ${thr}+ pts (now ${Math.abs(r.gap).toFixed(1)})`);
+  }
+  return send(chat, `⭐ <b>Watching your ${lines.length} starred question${lines.length === 1 ? "" : "s"}.</b> I’ll message you when Polymarket and Kalshi drift apart on any of them.\n\n${lines.join("\n")}` +
+    (had ? `\n\n${had} of them you already had.` : "") + (full ? `\n\n${full}` : "") + `\n\nChecked every 10 minutes. /list to change them.`);
+}
+
 async function daily(chat){
   await A.subscribe(chat);
   return send(chat, `📊 <b>You’re in for the daily gaps.</b> Every evening I’ll send the five biggest gaps between Polymarket and Kalshi on liquid questions, and the day’s biggest moves.`,
@@ -83,6 +103,7 @@ async function onMessage(m){
     const pl = args[0] || "";
     if (/^g_[A-Za-z0-9_-]{1,60}$/.test(pl)) return card(chat, pl.slice(2));
     if (pl === "daily") return daily(chat);
+    if (/^w_[A-Za-z0-9_-]{6,20}$/.test(pl)) return watchlist(chat, pl.slice(2));
     return send(chat, WELCOME, {reply_markup: {inline_keyboard: [[{text: `Open ${B.name}`, url: A.SITE}]]}});
   }
   if (c === "/gap" || c === "/move"){

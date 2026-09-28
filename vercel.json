@@ -19,7 +19,7 @@
     {"source": "/templates/:path*", "destination": "/", "permanent": false}
   ],
   "headers": [
-    {"source": "/(styles\\.css|app\\.js|bg\\.js)", "has": [{"type": "query", "key": "v"}],
+    {"source": "/(styles\\.css|app\\.js|bg\\.js|arb\\.js)", "has": [{"type": "query", "key": "v"}],
      "headers": [{"key": "Cache-Control", "value": "public, max-age=31536000, immutable"}]},
     {"source": "/assets/(.*)", "headers": [{"key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800"}]}
   ]

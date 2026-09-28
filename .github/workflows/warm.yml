@@ -25,6 +25,8 @@ jobs:
           liq = sorted([r for r in d["pairs"] if not r["thin"] and not r.get("live") and not r.get("wx")], key=lambda r: -abs(r["gap"]))
           print("weather questions (kept out of gap rankings):", sum(1 for r in d["pairs"] if r.get("wx")))
           print("liquid pairs:", len(liq))
+          print("dates differ:", sum(1 for r in d["pairs"] if r.get("rules")), [f'{r["title"][:40]} ({r["rules"]["days"]}d)' for r in d["pairs"] if r.get("rules") and not r["thin"]][:6])
+          print("fee rates seen:", sorted({r["poly"].get("fee") for r in d["pairs"]}, key=lambda x: -1 if x is None else x))
           for r in liq[:12]: print(f'  gap {r["gap"]:+6.1f}  poly {r["poly"]["p"]*100:5.1f}  kalshi {r["kalshi"]["p"]*100:5.1f}  {r["title"][:60]} :: {r.get("outcome") or ""}')
           open("slug", "w").write(liq[0]["slug"] if liq else "")
           open("id", "w").write(liq[0]["id"] if liq else "")
@@ -35,4 +37,6 @@ jobs:
           [ -n "$I" ] && curl -sS -m 30 "$SITE/api/history?id=$I&days=7" | head -c 300; echo
           for P in home gaps midterms; do curl -sS -m 60 -o /dev/null "$SITE/api/og?p=$P" -w "$P image: HTTP %{http_code} %{content_type} %{size_download}B %{redirect_url}\n"; done
           curl -sS -m 30 -o /dev/null "$SITE/topic/politics" -w "topic page: HTTP %{http_code} %{size_download}B\n"
+          curl -sS -m 30 -o /dev/null "$SITE/record" -w "record page: HTTP %{http_code} %{size_download}B\n"
+          curl -sS -m 30 "$SITE/api/record" | head -c 600; echo
           curl -sS -m 30 "$SITE/sitemap-questions.xml" | grep -c "<loc>" | sed 's/^/sitemap questions: /'

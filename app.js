@@ -10,6 +10,12 @@
   const usd = v => "$" + big(v);
   const startParam = id => String(id).replace(/\./g, "_");
   const bell = r => BOT ? `<a class="bell" href="https://t.me/${BOT}?start=g_${encodeURIComponent(startParam(r.id))}" target="_blank" rel="noopener" title="Telegram alert when the gap or odds move" aria-label="Alert me about ${esc(r.title)}"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg></a>` : "";
+  // Starred questions: the reader's own list, kept in this browser only
+  let STARS = new Set();
+  try { STARS = new Set(JSON.parse(localStorage.getItem("ow:stars") || "[]")); } catch (e) {}
+  const saveStars = () => { try { localStorage.setItem("ow:stars", JSON.stringify([...STARS])); } catch (e) {} };
+  const starSvg = `<svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3.6l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.5l-5.1 2.8 1.1-5.7-4.3-4 5.8-.7z" fill="currentColor" fill-opacity="var(--sf,0)" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+  const star = r => `<button class="star" type="button" data-star="${esc(r.id)}" aria-pressed="${STARS.has(r.id)}" aria-label="Star ${esc(r.title)}" title="Keep on your list">${starSvg}</button>`;
   function ends(iso){
     const t = Date.parse(iso);
     if (!isFinite(t)) return "–";
@@ -32,11 +38,11 @@
     return `<span class="lb l"><i style="width:${Math.max(a, .4)}%;${fill(a, b, "poly", "left")}"></i></span><span class="lbm"></span><span class="lb r"><i style="width:${Math.max(b, .4)}%;${fill(b, a, "kalshi", "right")}"></i></span>`;
   }
   const lrow = (r, meta = true) => `<li><a class="lrow${r.thin ? " thin" : ""}" href="/q/${r.slug}">
-      <span class="lq"><b>${esc(r.title)}</b>${r.outcome ? `<small>${esc(r.outcome)}</small>` : ""}</span>
+      <span class="lq"><b>${esc(r.title)}</b>${r.outcome ? `<small>${esc(r.outcome)}</small>` : ""}${r.rules ? `<small class="flag">Dates differ</small>` : ""}</span>
       <span class="ls l"><small class="dt">${esc(r.title)}</small>${meta ? `<small class="lm">${esc(r.cat)} · ${usd(r.poly.vol24)}</small>` : "<small></small>"}<b>${pc(r.poly.p)}</b></span>
       <span class="lg${Math.abs(r.gap) >= 5 && !r.thin ? " big" : ""}">${gp(r.gap)}</span>
       <span class="ls r"><b>${pc(r.kalshi.p)}</b>${meta ? `<small class="lm">${big(r.kalshi.vol24)} ct · ${ends(r.end)}</small>` : "<small></small>"}<small class="do">${esc(r.outcome || ends(r.end))}</small></span>
-      ${bars(r)}</a>${bell(r)}</li>`;
+      ${bars(r)}</a>${bell(r)}${star(r)}</li>`;
 
   function duel(r){
     return `<div class="duel">
@@ -62,11 +68,15 @@
     const base = b.pairs.filter(filter || (() => true));
     const chips = $("#chips");
     if (chips && !filter){
-      const cats = [{id: "all", name: "All", count: base.length}].concat(b.cats.filter(c => c.count));
+      const nStar = base.filter(r => STARS.has(r.id)).length;
+      const cats = [{id: "all", name: "All", count: base.length}].concat(nStar ? [{id: "starred", name: "★ Starred", count: nStar}] : [], b.cats.filter(c => c.count));
       chips.innerHTML = cats.map(c => `<button class="chip" data-cat="${c.id}" aria-pressed="${state.cat === c.id}">${esc(c.name)}<small>${c.count}</small></button>`).join("");
       chips.onclick = e => { const x = e.target.closest(".chip"); if (!x) return; state.cat = x.dataset.cat; state.n = 30; board(b, filter); };
     } else if (chips) chips.hidden = true;
-    let rows = base.filter(r => state.cat === "all" || r.cat === state.cat);
+    if (state.cat === "starred" && !base.some(r => STARS.has(r.id))) state.cat = "all";
+    let rows = base.filter(r => state.cat === "all" || (state.cat === "starred" ? STARS.has(r.id) : r.cat === state.cat));
+    const wb = $("#watchBar");
+    if (wb) wb.hidden = !(state.cat === "starred" && BOT);
     if (state.q){
       const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
       rows = rows.filter(r => { const h = `${r.title} ${r.outcome || ""} ${r.kalshi.title} ${r.kOutcome || ""} ${r.cat}`.toLowerCase(); return words.every(w => h.includes(w)); });
@@ -90,10 +100,35 @@
     set(tight);
   }
   density();
+  let redraw = () => {};
+  document.addEventListener("click", e => {
+    const x = e.target.closest("[data-star]");
+    if (!x) return;
+    e.preventDefault();
+    const id = x.dataset.star, on = !STARS.has(id);
+    on ? STARS.add(id) : STARS.delete(id);
+    saveStars();
+    document.querySelectorAll(`[data-star="${CSS.escape(id)}"]`).forEach(y => y.setAttribute("aria-pressed", String(on)));
+    redraw();
+  });
+  document.querySelectorAll("[data-star]").forEach(y => y.setAttribute("aria-pressed", String(STARS.has(y.dataset.star))));
+  // hands the starred questions to the bot, which sets a gap alert on each
+  const wa = $("#watchAlert");
+  if (wa) wa.onclick = async () => {
+    wa.disabled = true; const was = wa.textContent; wa.textContent = "Opening Telegram…";
+    try {
+      const r = await fetch("/api/watch", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({ids: [...STARS]})});
+      const j = await r.json();
+      if (!r.ok || !j.code) throw new Error(j.error || r.status);
+      location.href = `https://t.me/${BOT}?start=w_${j.code}`;
+    } catch (e) { wa.textContent = "That didn’t work. Try again in a minute."; setTimeout(() => { wa.textContent = was; wa.disabled = false; }, 3000); return; }
+    setTimeout(() => { wa.textContent = was; wa.disabled = false; }, 4000);
+  };
   function wireBoard(b, filter){
     const q = $("#q"), s = $("#sorts");
     if (q) q.oninput = () => { state.q = q.value.trim(); state.n = 30; board(b, filter); };
     if (s) s.onclick = e => { const x = e.target.closest("button"); if (!x) return; state.sort = x.dataset.sort; s.querySelectorAll("button").forEach(y => y.setAttribute("aria-pressed", y === x)); board(b, filter); };
+    redraw = () => board(b, filter);
     board(b, filter);
   }
 
@@ -120,6 +155,76 @@
     const rows = byGap(liquid(b)).slice(0, +(box.dataset.n || 30));
     box.innerHTML = rows.map(r => lrow(r)).join("") || `<li class="empty center">No liquid question has a gap right now.</li>`;
   }
+  // Gaps page: where Yes on one side plus No on the other costs less than $1 with fees
+  const cents = v => Math.round(v * 100) + "¢";
+  function arbRows(b){
+    const box = $("#arbRows");
+    if (!box || !window.ARB) return;
+    const rows = b.pairs.filter(r => !r.live && !r.wx && !r.thin).map(r => ({r, a: ARB.plan(r, 100)})).filter(x => x.a && x.a.edge > 0.002 && x.a.edge < 0.2)
+      .sort((x, y) => y.a.edge - x.a.edge)
+      // a head-to-head game is one market with two outcomes: both rows are the same trade, so keep one
+      .filter((x, i, all) => all.findIndex(y => y.r.poly.market === x.r.poly.market && Math.abs(y.a.edge - x.a.edge) < 0.001) === i).slice(0, 12);
+    box.innerHTML = rows.map(({r, a}) => {
+      const pl = a.yes.at === "poly" ? ["Yes", a.yes.p] : ["No", a.no.p], kl = a.yes.at === "kalshi" ? ["Yes", a.yes.p] : ["No", a.no.p];
+      return `<li><a class="arbrow${r.thin ? " thin" : ""}" href="/q/${r.slug}#arb">
+        <span class="lq"><b>${esc(r.title)}</b>${r.outcome ? `<small>${esc(r.outcome)}</small>` : ""}${r.rules ? `<small class="flag">Dates differ</small>` : ""}</span>
+        <span class="al"><small>${pl[0]} on Polymarket</small><b class="poly">${cents(pl[1])}</b></span>
+        <span class="am"><b>+${(a.edge * 100).toFixed(1)}¢</b><small>per $1</small></span>
+        <span class="ar"><b class="kalshi">${cents(kl[1])}</b><small>${kl[0]} on Kalshi</small></span></a></li>`;
+    }).join("") || `<li class="empty center">No question costs less than $1 on both sides after fees right now. That is the usual state: the gaps above are mostly eaten by fees and spreads.</li>`;
+  }
+  function arbCalc(r){
+    const box = $("#arb"), inp = $("#stake");
+    if (!box || !inp || !window.ARB || !r) return;
+    const usd2 = v => (v < 0 ? "−$" : "$") + Math.abs(v).toFixed(2);
+    const draw = () => {
+      const a = ARB.plan(r, Math.max(1, +inp.value || 100));
+      if (!a) return;
+      const leg = (l, side) => `Buy <b>${side}</b> at ${cents(l.p)}`;
+      $("#arbP").innerHTML = a.yes.at === "poly" ? leg(a.yes, "Yes") : leg(a.no, "No");
+      $("#arbK").innerHTML = a.yes.at === "kalshi" ? leg(a.yes, "Yes") : leg(a.no, "No");
+      $("#arbCost").textContent = cents(a.cost);
+      const row = (h, v) => `<span class="v l">${h}</span><span class="h"></span><span class="v r">${v}</span>`;
+      $("#arbFacts").innerHTML = row("Contracts on each side", String(a.contracts)) + row("Cost with fees", usd2(a.spent)) + row("of which fees", usd2(a.fees)) +
+        row("Pays at the end", usd2(a.payout)) + row("Profit", `<b class="${a.profit > 0 ? "up" : "down"}">${usd2(a.profit)}</b>`) +
+        row("Return", `${(a.ret * 100).toFixed(1)}%${a.yearly != null && a.days >= 7 ? ` · ${(a.yearly * 100).toFixed(0)}% a year` : ""}`);
+      $("#arbVerdict").innerHTML = r.live ? `The game is under way, so these prices move by the second and may be gone before you trade.`
+        : r.thin && a.edge > 0 ? `One side trades thinly, so this price may not be real. <b>${(a.edge * 100).toFixed(1)}¢</b> on every $1 on paper.`
+        : a.edge > 0.2 ? `<b>${(a.edge * 100).toFixed(1)}¢</b> on every $1 is too good to be true: the two questions probably differ. Read the rules below.`
+        : a.edge > 0 ? `Locked in: <b class="up">${(a.edge * 100).toFixed(1)}¢</b> on every $1, if both settle the same way.`
+        : `No locked-in profit now: both sides cost ${(a.perPair * 100).toFixed(1)}¢ with fees for a $1 payout.`;
+    };
+    inp.oninput = draw;
+    draw();
+  }
+
+  /* ---------- the record: who was right ---------- */
+  async function record(){
+    const box = $("#score");
+    if (!box) return;
+    let d;
+    try { d = await (await fetch("/api/record")).json(); } catch (e) { box.innerHTML = `<p class="empty center">The record couldn’t load. Refresh in a minute.</p>`; return; }
+    const w = d.wins || {poly: 0, kalshi: 0, tie: 0};
+    box.innerHTML = `<div class="half l stat"><small>Polymarket closer</small><b class="poly">${w.poly}</b>${d.miss ? `<small>misses by ${d.miss.poly} pts on average</small>` : ""}</div>
+      <div class="mid stat"><small>Settled</small><b>${d.n}</b><small>${w.tie} tie${w.tie === 1 ? "" : "s"}</small></div>
+      <div class="half r stat"><small>Kalshi closer</small><b class="kalshi">${w.kalshi}</b>${d.miss ? `<small>misses by ${d.miss.kalshi} pts on average</small>` : ""}</div>`;
+    const res = v => v === 1 ? "Yes" : v === 0 ? "No" : "50-50";
+    const row = x => {
+      const r = {poly: {p: x.p[0]}, kalshi: {p: x.p[1]}};
+      const tag = side => x.win === side ? `<i class="won" title="Closer">✓</i>` : "";
+      const inner = `<span class="lq"><b>${esc(x.t)}</b>${x.o ? `<small>${esc(x.o)}</small>` : ""}</span>
+        <span class="ls l"><small class="lm">${new Date(x.at).toLocaleDateString("en-US", {month: "short", day: "numeric"})}</small><b>${tag("poly")}${pc(x.p[0])}</b></span>
+        <span class="lg res${x.res ? " yes" : ""}">${x.win === "split" ? `P ${res(x.pres)} · K ${res(x.res)}` : res(x.res)}</span>
+        <span class="ls r"><b>${pc(x.p[1])}${tag("kalshi")}</b><small class="lm">${x.win === "tie" ? "tie" : ""}</small></span>${bars(r)}`;
+      return `<li>${x.s ? `<a class="lrow" href="/q/${x.s}">${inner}</a>` : `<div class="lrow">${inner}</div>`}</li>`;
+    };
+    const fair = (d.recent || []).filter(x => x.win !== "split");
+    $("#recSub").textContent = d.n ? `The ${Math.min(fair.length, 60)} most recent, newest first. Prices are from a day before the end, or just before kick-off.` : "Nothing has settled since we started keeping score. Questions land here as they settle.";
+    $("#recRows").innerHTML = fair.map(row).join("") || `<li class="empty center">The first results arrive as questions settle, usually within a day.</li>`;
+    if ((d.split || []).length){ $("#splitWrap").hidden = false; $("#splitRows").innerHTML = d.split.map(row).join(""); }
+  }
+  record();
+
   function lonely(b){
     const li = (x, cls) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a><small>${cls === "poly" ? usd(x.vol24) : big(x.vol24)}</small></li>`;
     if ($("#onlyPoly")) $("#onlyPoly").innerHTML = b.onlyPoly.slice(0, 8).map(x => li(x, "poly")).join("");
@@ -142,7 +247,7 @@
   }
 
   /* ---------- the finder: search every question and page from anywhere ---------- */
-  const PAGES = [["/", "Every question on both"], ["/gaps", "Biggest gaps"], ["/midterms", "US midterms"], ["/alerts", "Telegram alerts"], ["/learn", "Why prices differ"], ["/about", "About"],
+  const PAGES = [["/", "Every question on both"], ["/gaps", "Biggest gaps"], ["/record", "Who was right"], ["/midterms", "US midterms"], ["/alerts", "Telegram alerts"], ["/learn", "Why prices differ"], ["/about", "About"],
     ["/topic/politics", "Politics"], ["/topic/economy", "Economy"], ["/topic/sports", "Sports"], ["/topic/crypto", "Crypto"], ["/topic/culture", "Culture"]];
   let BOARD = null;
   function finder(){
@@ -219,6 +324,7 @@
     if (r){
       const d = $("#duelBox"); if (d) d.innerHTML = duel(r);
     }
+    arbCalc(r || null);
     const box = $("#pairChart"), seg = $("#range");
     let days = 7, cache = {};
     const load = async () => {
@@ -249,7 +355,7 @@
     if ($("#livePairs")) $("#livePairs").textContent = b.pairs.length;
     window.dispatchEvent(new CustomEvent("ow:data", {detail: b}));
     if (PAGE === "home"){ spot(b); stats(b); wireBoard(b); lonely(b); }
-    else if (PAGE === "gaps") gapLedger(b);
+    else if (PAGE === "gaps"){ gapLedger(b); arbRows(b); }
     else if (PAGE === "midterms"){ control(b); wireBoard(b, midterm); }
     else if (PAGE === "topic"){ const t = ($("#topic") || {}).dataset?.t; wireBoard(b, r => r.cat === t); }
     else if (PAGE === "pair") pairPage(b);

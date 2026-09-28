@@ -44,7 +44,7 @@ LOGO = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64
 os.makedirs(os.path.join(ROOT, "assets"), exist_ok=True)
 open(os.path.join(ROOT, "assets", "logo-mark.svg"), "w").write(LOGO)
 
-NAV = [("/", "Odds"), ("/gaps", "Gaps"), ("/midterms", "Midterms"), ("/alerts", "Alerts"), ("/learn", "Learn"), ("/about", "About")]
+NAV = [("/", "Odds"), ("/gaps", "Gaps"), ("/record", "Record"), ("/midterms", "Midterms"), ("/alerts", "Alerts"), ("/learn", "Learn"), ("/about", "About")]
 TOPICS = [("politics", "Politics"), ("economy", "Economy"), ("sports", "Sports"), ("crypto", "Crypto"), ("culture", "Culture")]
 BOT = str(B.get("telegram") or "").lstrip("@")
 XLINK = f'<a class="navx" href="https://x.com/{B["x"]}" target="_blank" rel="noopener me" aria-label="Follow {{{{name}}}} on X">X</a>' if B.get("x") else ""
@@ -113,6 +113,7 @@ def page(path, title, desc, body, og="/api/og?p=home", kind=None, extra=""):
     <ol class="findres" id="findRes"></ol>
   </div>
 </div>
+<script src="{v('arb.js')}" defer></script>
 <script src="{v('bg.js')}" defer></script>
 <script src="{v('app.js')}" defer></script>
 </body>
@@ -145,7 +146,8 @@ LEDGER = """  <section class="ledgerwrap" aria-labelledby="boardH">
     <div class="ledgerkey" aria-hidden="true"><span class="l"><i class="key poly"></i>Polymarket</span><span class="m">gap</span><span class="r">Kalshi<i class="key kalshi"></i></span></div>
     <ol class="ledger" id="ledger"><li class="empty center">Loading both markets…</li></ol>
     <p class="more"><button class="btn" id="showMore" hidden>Show more</button></p>
-    <p class="fine center narrow">Each price is the market’s chance for that outcome: the middle of the best bid and ask, or the last trade when the spread is wider than 10 points, the way both platforms show it. The bars grow out from the middle, one per market; the orange end is the gap. Gap is Polymarket minus Kalshi, in percentage points. <span class="thin-key">Faded</span> rows are thinly traded or have a wide spread, so their gap may not be real.</p>
+    <p class="more" id="watchBar" hidden><button class="btn primary" id="watchAlert" type="button">Alert me on these on Telegram</button></p>
+    <p class="fine center narrow">Each price is the market’s chance for that outcome: the middle of the best bid and ask, or the last trade when the spread is wider than 10 points, the way both platforms show it. The bars grow out from the middle, one per market; the orange end is the gap. Gap is Polymarket minus Kalshi, in percentage points. <span class="thin-key">Faded</span> rows are thinly traded or have a wide spread, so their gap may not be real. Star a question to keep it on your own list; the list stays in this browser.</p>
   </section>
 """
 
@@ -170,8 +172,14 @@ GAPS = head("Gaps", "Where the markets <em>disagree.</em>",
             "Every question both platforms trade, sorted by how far apart their prices are. A gap can mean one side has news the other hasn’t priced, different rules, or different traders. Thin markets, games already under way and weather questions (the two often settle on different weather stations) are left out.") + """
   <div class="gapbar"><div class="sorts density" id="density" role="group" aria-label="Row size"><button data-d="wide" aria-pressed="true">Wide</button><button data-d="tight">Tight</button></div></div>
   <ol class="ledger" id="gapLedger" data-n="30"><li class="empty center">Loading…</li></ol>
+  <section class="arblist" aria-labelledby="arbH">
+    <div class="ledgerhead center"><p class="eyebrow">Arbitrage</p><h2 id="arbH">Where both sides cost <em>less than $1</em></h2>
+      <p class="sub narrow center">Yes on one platform plus No on the other, at the best prices right now, with each platform’s taker fees. One of the two pays $1, so the difference is locked in if both settle the same way.</p></div>
+    <ol class="arbrows" id="arbRows"><li class="empty center">Loading…</li></ol>
+    <p class="fine center narrow">Only the size resting at the best price fills there, the money is tied up until the end, and a gap this big often means the two questions are not quite the same. Open a question to read both rule texts and size the trade.</p>
+  </section>
   <section class="dialogue">
-    <article class="qa"><h3>Is a gap free money?</h3><p>Rarely. Fees on both sides, money stuck until the market settles, and small differences in how each platform words and settles the question eat most gaps. Read both rule texts before you trade either side.</p></article>
+    <article class="qa"><h3>Is a gap free money?</h3><p>Rarely. Fees on both sides, money stuck until the market settles, and small differences in how each platform words and settles the question eat most gaps. The list above does the fee maths for you; read both rule texts before you trade either side.</p></article>
     <article class="qa"><h3>Why do gaps happen?</h3><p>Different traders, different access (Kalshi is US-regulated, Polymarket runs a US and an international exchange), different fees and different settlement rules. Big gaps usually close when news lands. <a href="/learn">More on why prices differ</a>.</p></article>
   </section>
 """
@@ -181,6 +189,24 @@ MIDTERMS = head("US midterms · November 3, 2026", "The midterms, <em>priced twi
   <section class="control" id="control" aria-label="Control of Congress"><p class="empty center">Loading…</p></section>
 """ + LEDGER.replace("__BOARD_H__", "Every midterm question on both") + """
   <p class="fine center narrow">We count a question as a midterm question when it mentions the House, the Senate, a governor or a 2026 election. Races that only one platform lists are not shown.</p>
+"""
+
+RECORD = head("Record", "Who called it <em>better?</em>",
+              "Every question both platforms priced, once it settles: which market had put the higher chance on what actually happened, a day before the end, or just before kick-off for a game.") + """
+  <section class="mirror stats score" id="score" aria-live="polite"><p class="empty center">Loading…</p></section>
+  <section class="ledgerwrap" aria-labelledby="recH">
+    <div class="ledgerhead center"><h2 id="recH">Settled questions</h2><p class="sub" id="recSub">Loading…</p></div>
+    <div class="ledgerkey" aria-hidden="true"><span class="l"><i class="key poly"></i>Polymarket</span><span class="m">result</span><span class="r">Kalshi<i class="key kalshi"></i></span></div>
+    <ol class="ledger compact recrows" id="recRows"><li class="empty center">Loading…</li></ol>
+  </section>
+  <section class="ledgerwrap" id="splitWrap" hidden aria-labelledby="splitH">
+    <div class="ledgerhead center"><h2 id="splitH">Settled <em>differently</em></h2><p class="sub narrow center">The same question, one platform said Yes and the other No. This is what different rules look like.</p></div>
+    <ol class="ledger compact recrows" id="splitRows"></ol>
+  </section>
+  <section class="dialogue">
+    <article class="qa"><h3>How is it scored?</h3><p>For each settled question we take both prices a day before it left the board, or half an hour before a game started. The market that gave the actual result the higher chance wins it. Within one point is a tie. The average miss is how far each market’s price was from the result, in points: lower is better.</p></article>
+    <article class="qa"><h3>Which questions count?</h3><p>Every question we matched on both that traded well at some point, from the day {{name}} started. Weather questions are left out, because the two platforms often read different weather stations. A question that settled differently on the two platforms isn’t scored; it’s listed on its own.</p></article>
+  </section>
 """
 
 TOPIC = """__HEAD__
@@ -272,6 +298,7 @@ NOTFOUND = head("404", "That page <em>isn’t here.</em>", "The link may be old,
 PAGES = [
     ("index.html", "/", "{{name}}: Polymarket vs Kalshi odds, side by side", B["description"], HOME),
     ("gaps.html", "/gaps", "Biggest gaps between Polymarket and Kalshi right now · {{name}}", "The questions where Polymarket and Kalshi disagree most, live, on liquid markets only.", GAPS, "/api/og?p=gaps"),
+    ("record.html", "/record", "Polymarket vs Kalshi: who called it better? · {{name}}", "Every question both prediction markets priced, once it settles: which one was closer to what happened.", RECORD),
     ("midterms.html", "/midterms", "2026 midterm odds: Polymarket vs Kalshi · {{name}}", "Who wins the House, the Senate and the closest 2026 races, priced on Polymarket and Kalshi side by side, live.", MIDTERMS, "/api/og?p=midterms"),
     ("alerts.html", "/alerts", "Odds and gap alerts on Telegram · {{name}}", "Free Telegram alerts when a prediction market moves or Polymarket and Kalshi drift apart.", ALERTS_ON if BOT else ALERTS_SOON),
     ("learn.html", "/learn", "Why Polymarket and Kalshi disagree · {{name}}", "What a prediction market price means, why the same question has two prices, and whether a gap is worth trading.", LEARN),
