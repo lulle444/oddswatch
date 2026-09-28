@@ -26,6 +26,14 @@ jobs:
           print("weather questions (kept out of gap rankings):", sum(1 for r in d["pairs"] if r.get("wx")))
           print("liquid pairs:", len(liq))
           print("dates differ:", sum(1 for r in d["pairs"] if r.get("rules")), [f'{r["title"][:40]} ({r["rules"]["days"]}d)' for r in d["pairs"] if r.get("rules") and not r["thin"]][:6])
+          def plan(r):
+              P, K = r["poly"], r["kalshi"]; rate = P.get("fee") if P.get("fee") is not None else 0.05; out = []
+              if P.get("ask") and K.get("bid"): out.append((P["ask"], 1 - K["bid"], rate, .07))
+              if K.get("ask") and P.get("bid"): out.append((1 - P["bid"], K["ask"], rate, .07))
+              out = [o for o in out if all(.02 <= x <= .98 for x in o[:2])]
+              return max((1 - a - b - fa * a * (1 - a) - fb * b * (1 - b) for a, b, fa, fb in out), default=None)
+          arbs = sorted(((plan(r), r) for r in d["pairs"] if not r["thin"] and not r.get("live") and not r.get("wx")), key=lambda x: -(x[0] or -1))
+          print("under $1 after fees:", [f'{r["title"][:40]} {r.get("outcome") or ""} +{e*100:.1f}c' for e, r in arbs if e and e > .002][:8])
           print("fee rates seen:", sorted({r["poly"].get("fee") for r in d["pairs"]}, key=lambda x: -1 if x is None else x))
           for r in liq[:12]: print(f'  gap {r["gap"]:+6.1f}  poly {r["poly"]["p"]*100:5.1f}  kalshi {r["kalshi"]["p"]*100:5.1f}  {r["title"][:60]} :: {r.get("outcome") or ""}')
           open("slug", "w").write(liq[0]["slug"] if liq else "")
