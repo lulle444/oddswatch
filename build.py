@@ -34,11 +34,11 @@ def v(f):
 
 # ---------- logo mark: two odds lines, one per market, and the gap between them ----------
 LOGO = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect width="64" height="64" rx="15" fill="{C['ink']}"/>
+  <rect x="1" y="1" width="62" height="62" rx="14" fill="{C['bg2']}" stroke="{C['accent']}" stroke-opacity=".55" stroke-width="1.5"/>
   <path d="M12 40 L24 30 L34 34 L52 18" fill="none" stroke="{C['poly']}" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M12 48 L24 40 L34 43 L52 30" fill="none" stroke="#2FD39A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 48 L24 40 L34 43 L52 30" fill="none" stroke="{C['kalshi']}" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M52 21.5v5" stroke="{C['accent']}" stroke-width="3.4" stroke-linecap="round"/>
-  <circle cx="52" cy="18" r="3.6" fill="#FFFFFF"/>
+  <circle cx="52" cy="18" r="3.6" fill="{C['accent']}"/>
 </svg>
 """
 os.makedirs(os.path.join(ROOT, "assets"), exist_ok=True)

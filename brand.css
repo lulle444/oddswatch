@@ -1,17 +1,17 @@
 /* Written by build.py from brand.json. Edit brand.json instead. */
 :root{
-  --b-bg:#F7F6F2;
-  --b-bg2:#EEECE6;
-  --b-panel:#FFFFFF;
-  --b-line:#E5E2DA;
-  --b-ink:#111114;
-  --b-muted:#6D6A64;
-  --b-poly:#2C4FCF;
-  --b-kalshi:#0A7A56;
-  --b-gap:#C2410C;
-  --b-accent:#A8844E;
-  --b-up:#0A7A56;
-  --b-down:#B42318;
+  --b-bg:#0B0A0C;
+  --b-bg2:#1A181C;
+  --b-panel:#121014;
+  --b-line:#2A262B;
+  --b-ink:#F2ECE1;
+  --b-muted:#9A9288;
+  --b-poly:#6A83F2;
+  --b-kalshi:#22A36E;
+  --b-gap:#E2612B;
+  --b-accent:#D4B47A;
+  --b-up:#22A36E;
+  --b-down:#E5534B;
   --f-display:"Instrument Serif";
   --f-body:"Geist";
   --f-mono:"Geist Mono";

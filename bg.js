@@ -9,8 +9,8 @@
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let W, H, dpr, t = 0, mx = .5, raf;
   const lanes = [
-    {y: .22, amp: .07, sp: .00021, ph: 0, a: .12},
-    {y: .64, amp: .09, sp: .00016, ph: 2.1, a: .08},
+    {y: .22, amp: .07, sp: .00021, ph: 0, a: .2},
+    {y: .64, amp: .09, sp: .00016, ph: 2.1, a: .13},
   ];
   function size(){
     dpr = Math.min(2, devicePixelRatio || 1);

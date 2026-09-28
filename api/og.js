@@ -78,7 +78,7 @@ function gapList(rows){
   return h({flexDirection: "column", backgroundColor: K.panel, border: `1px solid ${K.line}`, borderRadius: 16, padding: "6px 26px"},
     ...rows.map((r, i) => h({alignItems: "center", padding: "13px 0", borderBottom: i < rows.length - 1 ? `1px solid ${K.line}` : "none", fontSize: 24},
       h({flex: 1, flexDirection: "column", paddingRight: 20},
-        h({fontWeight: 600}, cut(r.title, 52)), r.outcome ? h({fontSize: 19, color: K.muted}, cut(r.outcome, 60)) : null),
+        h({fontWeight: 600}, cut(r.title, 40)), r.outcome ? h({fontSize: 19, color: K.muted}, cut(r.outcome, 60)) : null),
       h({width: 120, justifyContent: "flex-end", fontFamily: F.mono, fontWeight: 500, color: K.poly}, pc(r.poly.p)),
       h({width: 120, justifyContent: "flex-end", fontFamily: F.mono, fontWeight: 500, color: K.kalshi}, pc(r.kalshi.p)),
       h({width: 150, justifyContent: "flex-end", fontFamily: F.mono, fontWeight: 500, color: K.gap}, gp(r.gap) + " pts"))));
@@ -92,7 +92,7 @@ const CARDS = {
     return frame("Same event, different odds", "",
       h({flexDirection: "column", marginTop: 34},
         h({fontFamily: F.display, fontWeight: 400, fontSize: 68, lineHeight: 1.02, letterSpacing: -2}, "Polymarket vs Kalshi,"),
-        h({fontFamily: F.display, fontWeight: 400, fontSize: 68, lineHeight: 1.02, letterSpacing: -2, color: K.poly}, "side by side."),
+        h({fontFamily: F.display, fontWeight: 400, fontSize: 68, lineHeight: 1.02, letterSpacing: -2, color: K.accent}, "side by side."),
         h({fontSize: 26, color: K.muted, marginTop: 18}, `${b.pairs.length} questions priced on both. The biggest gap right now:`)),
       r ? h({flexDirection: "column", marginTop: 26},
         h({fontSize: 27, fontWeight: 600, marginBottom: 6}, cut(r.title + (r.outcome ? " · " + r.outcome : ""), 70)),
@@ -101,10 +101,10 @@ const CARDS = {
           h({color: K.gap, marginLeft: 26}, gp(r.gap) + " pts"))) : null);
   },
   async gaps(){
-    const b = await getBoard(), rows = liquidGaps(b, 5);
+    const b = await getBoard(), rows = liquidGaps(b, 4);
     if (!rows.length) return null;
     return frame("Biggest gaps right now", "/gaps",
-      h({fontFamily: F.display, fontWeight: 400, fontSize: 52, letterSpacing: -1.5, marginTop: 26, marginBottom: 18}, "Where the two markets disagree"),
+      h({fontFamily: F.display, fontWeight: 400, fontSize: 52, letterSpacing: -1, marginTop: 22, marginBottom: 16, flexShrink: 0}, "Where the two markets disagree"),
       gapList(rows));
   },
   async midterms(){
@@ -125,10 +125,10 @@ const CARDS = {
   },
   async topic(q){
     const b = await getBoard(), t = String(q.t || "");
-    const rows = b.pairs.filter(r => r.cat === t && !r.thin).sort((x, y) => (y.poly.vol24 + y.kalshi.vol24) - (x.poly.vol24 + x.kalshi.vol24)).slice(0, 5);
+    const rows = b.pairs.filter(r => r.cat === t && !r.thin).sort((x, y) => (y.poly.vol24 + y.kalshi.vol24) - (x.poly.vol24 + x.kalshi.vol24)).slice(0, 4);
     if (!rows.length) return null;
     return frame(catName(t), "/topic/" + t,
-      h({fontFamily: F.display, fontWeight: 400, fontSize: 52, letterSpacing: -1.5, marginTop: 26, marginBottom: 18}, `${catName(t)}, priced twice`),
+      h({fontFamily: F.display, fontWeight: 400, fontSize: 52, letterSpacing: -1, marginTop: 22, marginBottom: 16, flexShrink: 0}, `${catName(t)}, priced twice`),
       gapList(rows));
   },
   async q(q){
