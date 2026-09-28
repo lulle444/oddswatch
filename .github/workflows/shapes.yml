@@ -1,0 +1,15 @@
+name: API shapes
+# Prints what the Kalshi and Polymarket APIs return for rules and settled markets (the build sandbox can't reach them).
+on:
+  workflow_dispatch:
+  push:
+    paths: ["scripts/shapes.js"]
+jobs:
+  shapes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: node scripts/shapes.js
