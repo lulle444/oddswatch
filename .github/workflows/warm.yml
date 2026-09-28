@@ -22,7 +22,8 @@ jobs:
           except Exception as e: print("not JSON:", e, open("odds.json").read()[:300]); raise SystemExit
           if "error" in d: print("ERROR:", d["error"]); raise SystemExit
           print("counts:", d["counts"], "built in", d.get("ms"), "ms")
-          liq = sorted([r for r in d["pairs"] if not r["thin"]], key=lambda r: -abs(r["gap"]))
+          liq = sorted([r for r in d["pairs"] if not r["thin"] and not r.get("live") and not r.get("wx")], key=lambda r: -abs(r["gap"]))
+          print("weather questions (kept out of gap rankings):", sum(1 for r in d["pairs"] if r.get("wx")))
           print("liquid pairs:", len(liq))
           for r in liq[:12]: print(f'  gap {r["gap"]:+6.1f}  poly {r["poly"]["p"]*100:5.1f}  kalshi {r["kalshi"]["p"]*100:5.1f}  {r["title"][:60]} :: {r.get("outcome") or ""}')
           open("slug", "w").write(liq[0]["slug"] if liq else "")
