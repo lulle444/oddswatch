@@ -1,54 +1,48 @@
-// The live background: two faint odds lines, one per market, drifting across the page and never quite agreeing.
-// The space between them is tinted like the gap on the board. Calm, slow, and still when the reader asks for less motion.
+// The live background: a slow light runs down the seam between the two markets, and every so often a price
+// ticks out from it, blue to the Polymarket side and green to the Kalshi side. Still when the reader asks for less motion.
 (() => {
   const cv = document.getElementById("lines");
   if (!cv) return;
   const cx = cv.getContext("2d"), css = getComputedStyle(document.documentElement);
   const col = k => css.getPropertyValue("--b-" + k).trim() || "#888";
-  const POLY = col("poly"), KAL = col("kalshi"), GAP = col("gap");
+  const POLY = col("poly"), KAL = col("kalshi"), GOLD = col("accent");
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let W, H, dpr, t = 0, mx = .5, raf;
-  const lanes = [
-    {y: .22, amp: .07, sp: .00021, ph: 0, a: .2},
-    {y: .64, amp: .09, sp: .00016, ph: 2.1, a: .13},
-  ];
+  let W, H, dpr, raf, y = 0, last = 0;
+  const ticks = [];
   function size(){
     dpr = Math.min(2, devicePixelRatio || 1);
     W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr;
   }
-  // a smooth wandering line made of a few sine waves
-  const wave = (x, s, ph) => Math.sin(x * 2.1 + s + ph) * .55 + Math.sin(x * 5.3 - s * 1.7 + ph * 2) * .3 + Math.sin(x * 11.7 + s * 2.3) * .15;
-  function draw(){
+  function draw(t){
+    const dt = Math.min(64, t - (last || t)); last = t;
     cx.clearRect(0, 0, W, H);
-    for (const L of lanes){
-      const s = t * L.sp * 60, N = 90, a = [], b = [];
-      for (let i = 0; i <= N; i++){
-        const x = i / N, base = L.y + (mx - .5) * .03;
-        const p = base + wave(x, s, L.ph) * L.amp, k = base + wave(x, s * .93 + .6, L.ph + .4) * L.amp + Math.sin(x * 3 + s) * .018;
-        a.push([x * W, p * H]); b.push([x * W, k * H]);
-      }
-      cx.beginPath();
-      a.forEach(([x, y], i) => i ? cx.lineTo(x, y) : cx.moveTo(x, y));
-      for (let i = b.length - 1; i >= 0; i--) cx.lineTo(b[i][0], b[i][1]);
-      cx.closePath(); cx.globalAlpha = L.a * .35; cx.fillStyle = GAP; cx.fill();
-      for (const [pts, c] of [[b, KAL], [a, POLY]]){
-        cx.beginPath(); pts.forEach(([x, y], i) => i ? cx.lineTo(x, y) : cx.moveTo(x, y));
-        cx.globalAlpha = L.a; cx.strokeStyle = c; cx.lineWidth = 1.3 * dpr; cx.stroke();
-      }
-      // the newest point on each line
-      const [ax, ay] = a[a.length - 1], [bx, by] = b[b.length - 1];
-      cx.globalAlpha = L.a * 1.6;
-      cx.fillStyle = POLY; cx.beginPath(); cx.arc(ax - 6 * dpr, ay, 2.6 * dpr, 0, 7); cx.fill();
-      cx.fillStyle = KAL; cx.beginPath(); cx.arc(bx - 6 * dpr, by, 2.6 * dpr, 0, 7); cx.fill();
+    const mid = W / 2;
+    // the light on the seam
+    y = (y + dt * .045 * dpr) % (H + 300 * dpr);
+    const g = cx.createLinearGradient(0, y - 260 * dpr, 0, y);
+    g.addColorStop(0, "transparent"); g.addColorStop(1, GOLD);
+    cx.globalAlpha = .55; cx.fillStyle = g; cx.fillRect(mid - dpr, y - 260 * dpr, 2 * dpr, 260 * dpr);
+    cx.globalAlpha = .9; cx.beginPath(); cx.arc(mid, y, 2.2 * dpr, 0, 7); cx.fillStyle = GOLD; cx.fill();
+    // prices ticking out to each side
+    if (Math.random() < dt / 900) ticks.push({y: Math.random() * H, side: Math.random() < .5 ? -1 : 1, len: (.08 + Math.random() * .3) * W / 2, a: 0});
+    for (let i = ticks.length - 1; i >= 0; i--){
+      const k = ticks[i]; k.a += dt / 2600;
+      if (k.a >= 1){ ticks.splice(i, 1); continue; }
+      const grow = Math.min(1, k.a * 3), fade = k.a < .3 ? 1 : 1 - (k.a - .3) / .7;
+      const x2 = mid + k.side * k.len * grow;
+      const lg = cx.createLinearGradient(mid, 0, x2, 0);
+      lg.addColorStop(0, "transparent"); lg.addColorStop(1, k.side < 0 ? POLY : KAL);
+      cx.globalAlpha = .35 * fade; cx.strokeStyle = lg; cx.lineWidth = dpr;
+      cx.beginPath(); cx.moveTo(mid, k.y); cx.lineTo(x2, k.y); cx.stroke();
+      cx.globalAlpha = .6 * fade; cx.fillStyle = k.side < 0 ? POLY : KAL; cx.beginPath(); cx.arc(x2, k.y, 1.8 * dpr, 0, 7); cx.fill();
     }
     cx.globalAlpha = 1;
   }
-  function loop(){ t++; draw(); raf = requestAnimationFrame(loop); }
-  size(); draw();
-  addEventListener("resize", () => { size(); draw(); });
+  function loop(t){ draw(t); raf = requestAnimationFrame(loop); }
+  size();
+  addEventListener("resize", size);
   if (!still){
-    addEventListener("pointermove", e => { mx = e.clientX / innerWidth; }, {passive: true});
-    document.addEventListener("visibilitychange", () => { cancelAnimationFrame(raf); if (!document.hidden) loop(); });
-    loop();
+    document.addEventListener("visibilitychange", () => { cancelAnimationFrame(raf); last = 0; if (!document.hidden) raf = requestAnimationFrame(loop); });
+    raf = requestAnimationFrame(loop);
   }
 })();

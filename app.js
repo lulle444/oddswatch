@@ -23,46 +23,48 @@
   const name = r => r.outcome ? `${esc(r.title)}` : esc(r.title);
   const sub = r => r.outcome ? `<span class="qo">${esc(r.outcome)}</span>` : "";
 
-  // Two pins on one 0–100 track, the gap between them shaded
-  function track(r, scale = true){
-    const a = r.poly.p * 100, b = r.kalshi.p * 100, lo = Math.min(a, b), hi = Math.max(a, b);
-    return `<div class="track" role="img" aria-label="Polymarket ${pc(r.poly.p)}, Kalshi ${pc(r.kalshi.p)}">
-      <span class="band" style="left:${lo}%;width:${Math.max(hi - lo, .6)}%"></span>
-      <span class="pin kalshi" style="left:${b}%"></span><span class="pin poly" style="left:${a}%"></span></div>` +
-      (scale ? `<div class="trackscale"><span>0%</span><span>50%</span><span>100%</span></div>` : "");
+  // One question across the seam: Polymarket's price and bar on the left, Kalshi's on the right, the gap on the seam.
+  // Each bar grows out from the middle; the part of the longer bar past the shorter one is the gap, in orange.
+  function bars(r){
+    const a = r.poly.p * 100, b = r.kalshi.p * 100, hi = Math.max(a, b, .001);
+    const fill = (me, other, col, dir) => me > other && me - other >= .5
+      ? `background:linear-gradient(to ${dir},var(--b-${col}) 0 ${(other / me * 100).toFixed(1)}%,var(--b-gap) 0)` : `background:var(--b-${col})`;
+    return `<span class="lb l"><i style="width:${Math.max(a, .4)}%;${fill(a, b, "poly", "left")}"></i></span><span class="lbm"></span><span class="lb r"><i style="width:${Math.max(b, .4)}%;${fill(b, a, "kalshi", "right")}"></i></span>`;
   }
-  const card = r => `<a class="card" href="/q/${r.slug}">
-      <p class="t">${esc(r.title)}</p>${r.outcome ? `<p class="o">${esc(r.outcome)}</p>` : ""}
-      <div class="row"><span class="p"><small>Poly</small>${pc(r.poly.p)}</span><span class="k"><small>Kalshi</small>${pc(r.kalshi.p)}</span></div>
-      ${track(r, false)}
-      <div class="meta"><span class="tag">${esc(r.cat)}</span><span class="g">${gp(r.gap)} pts</span><span>ends ${ends(r.end)}</span></div></a>`;
+  const lrow = (r, meta = true) => `<li><a class="lrow${r.thin ? " thin" : ""}" href="/q/${r.slug}">
+      <span class="lq"><b>${esc(r.title)}</b>${r.outcome ? `<small>${esc(r.outcome)}</small>` : ""}</span>
+      <span class="ls l">${meta ? `<small class="lm">${esc(r.cat)} · ${usd(r.poly.vol24)}</small>` : "<small></small>"}<b>${pc(r.poly.p)}</b></span>
+      <span class="lg${Math.abs(r.gap) >= 5 && !r.thin ? " big" : ""}">${gp(r.gap)}</span>
+      <span class="ls r"><b>${pc(r.kalshi.p)}</b>${meta ? `<small class="lm">${big(r.kalshi.vol24)} ct · ${ends(r.end)}</small>` : "<small></small>"}</span>
+      ${bars(r)}</a>${bell(r)}</li>`;
 
   function duel(r){
     return `<div class="duel">
-        <div class="side poly"><small><span class="key poly"></span>Polymarket</small><b>${pc(r.poly.p)}</b></div>
+        <div class="side l"><small><i class="key poly"></i>Polymarket</small><b>${pc(r.poly.p)}</b></div>
         <div class="gapb"><small>gap</small>${gp(r.gap)}</div>
-        <div class="side kalshi"><small><span class="key kalshi"></span>Kalshi</small><b>${pc(r.kalshi.p)}</b></div>
-      </div>${track(r)}`;
+        <div class="side r"><small>Kalshi<i class="key kalshi"></i></small><b>${pc(r.kalshi.p)}</b></div>
+        ${bars(r)}
+      </div>`;
   }
 
   const liquid = b => b.pairs.filter(r => !r.thin && !r.live);
   const byGap = rows => rows.slice().sort((x, y) => Math.abs(y.gap) - Math.abs(x.gap));
 
-  /* ---------- the board ---------- */
+  /* ---------- the ledger ---------- */
   const MIDTERMS = /midterm|\bhouse\b|\bsenate\b|governor|gubernatorial|congress|balance of power/i;
   const midterm = r => r.cat === "politics" && MIDTERMS.test(r.title + " " + (r.kalshi.title || "")) && !/white house|president/i.test(r.title) &&
     (!r.end || Date.parse(r.end) < Date.parse("2027-03-01"));
-  const state = {cat: "all", q: "", sort: "vol", n: 40};
+  const state = {cat: "all", q: "", sort: "vol", n: 30};
 
   function board(b, filter){
-    const rowsBox = $("#rows");
-    if (!rowsBox) return;
+    const box = $("#ledger");
+    if (!box) return;
     const base = b.pairs.filter(filter || (() => true));
     const chips = $("#chips");
     if (chips && !filter){
       const cats = [{id: "all", name: "All", count: base.length}].concat(b.cats.filter(c => c.count));
       chips.innerHTML = cats.map(c => `<button class="chip" data-cat="${c.id}" aria-pressed="${state.cat === c.id}">${esc(c.name)}<small>${c.count}</small></button>`).join("");
-      chips.onclick = e => { const x = e.target.closest(".chip"); if (!x) return; state.cat = x.dataset.cat; state.n = 40; board(b, filter); };
+      chips.onclick = e => { const x = e.target.closest(".chip"); if (!x) return; state.cat = x.dataset.cat; state.n = 30; board(b, filter); };
     } else if (chips) chips.hidden = true;
     let rows = base.filter(r => state.cat === "all" || r.cat === state.cat);
     if (state.q){
@@ -73,19 +75,14 @@
     rows.sort(state.sort === "gap" ? (x, y) => (x.thin - y.thin) || Math.abs(y.gap) - Math.abs(x.gap)
       : state.sort === "end" ? (x, y) => (Date.parse(x.end) || 9e15) - (Date.parse(y.end) || 9e15) : (x, y) => vol(y) - vol(x));
     $("#boardSub").textContent = `${rows.length} ${rows.length === 1 ? "question" : "questions"} priced on both, updated ${new Date(b.t).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}.`;
-    rowsBox.innerHTML = rows.slice(0, state.n).map(r => `<tr class="${r.thin ? "thin" : ""}">
-        <td><a class="qn" href="/q/${r.slug}">${name(r)}</a>${sub(r)}</td>
-        <td class="r pp">${pc(r.poly.p)}</td><td class="r kp">${pc(r.kalshi.p)}</td>
-        <td class="r"><span class="gapv${Math.abs(r.gap) >= 5 && !r.thin ? " big" : ""}">${gp(r.gap)}</span> ${bell(r)}</td>
-        <td class="r hs" title="Polymarket in dollars / Kalshi in contracts">${usd(r.poly.vol24)} / ${big(r.kalshi.vol24)}</td>
-        <td class="r hm">${ends(r.end)}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">Nothing matches that.</td></tr>`;
+    box.innerHTML = rows.slice(0, state.n).map(r => lrow(r)).join("") || `<li class="empty center">Nothing matches that.</li>`;
     const more = $("#showMore");
-    if (more){ more.hidden = rows.length <= state.n; more.onclick = () => { state.n += 60; board(b, filter); }; }
+    if (more){ more.hidden = rows.length <= state.n; more.onclick = () => { state.n += 40; board(b, filter); }; }
   }
   function wireBoard(b, filter){
-    const q = $("#q"), s = $("#sort");
-    if (q) q.oninput = () => { state.q = q.value.trim(); state.n = 40; board(b, filter); };
-    if (s) s.onchange = () => { state.sort = s.value; board(b, filter); };
+    const q = $("#q"), s = $("#sorts");
+    if (q) q.oninput = () => { state.q = q.value.trim(); state.n = 30; board(b, filter); };
+    if (s) s.onclick = e => { const x = e.target.closest("button"); if (!x) return; state.sort = x.dataset.sort; s.querySelectorAll("button").forEach(y => y.setAttribute("aria-pressed", y === x)); board(b, filter); };
     board(b, filter);
   }
 
@@ -94,25 +91,23 @@
     const box = $("#spot .spotbody");
     if (!box) return;
     const r = byGap(liquid(b)).find(x => x.poly.vol24 + x.kalshi.vol24 > 20000) || byGap(liquid(b))[0];
-    if (!r){ box.innerHTML = `<p class="empty">No liquid gap right now.</p>`; return; }
-    box.innerHTML = `<a class="q" href="/q/${r.slug}">${esc(r.title)}</a><p class="o">${r.outcome ? esc(r.outcome) + " · " : ""}ends ${ends(r.end)}</p>${duel(r)}
-      <div class="foot2"><span>${usd(r.poly.vol24)} traded on Polymarket, ${big(r.kalshi.vol24)} contracts on Kalshi today</span>${bell(r) ? `<span>${bell(r)} alert me</span>` : ""}</div>`;
+    if (!r){ box.innerHTML = `<p class="empty center">No liquid gap right now.</p>`; return; }
+    box.innerHTML = `<a class="q center" href="/q/${r.slug}">${esc(r.title)}</a><p class="o center">${r.outcome ? esc(r.outcome) + " · " : ""}ends ${ends(r.end)}</p>${duel(r)}
+      <p class="spotfoot"><span class="l">${usd(r.poly.vol24)} traded today</span><span class="m">${bell(r) ? `${bell(r)}` : ""}</span><span class="r">${big(r.kalshi.vol24)} contracts today</span></p>`;
   }
   function stats(b){
     const box = $("#stats");
     if (!box) return;
     const liq = liquid(b), avg = liq.length ? liq.reduce((s, r) => s + Math.abs(r.gap), 0) / liq.length : null;
-    box.innerHTML = `<div class="stat"><small>Questions on both</small><b>${b.pairs.length}</b></div>
-      <div class="stat poly"><small>Traded on Polymarket, 24h</small><b>${usd(b.counts.polyVol24)}</b></div>
-      <div class="stat kalshi"><small>Contracts on Kalshi, 24h</small><b>${big(b.counts.kalshiVol24)}</b></div>
-      <div class="stat gap"><small>Typical gap, liquid questions</small><b>${avg == null ? "–" : avg.toFixed(1) + " pts"}</b></div>`;
+    box.innerHTML = `<div class="half l stat"><small>Polymarket, 24h</small><b class="poly">${usd(b.counts.polyVol24)}</b></div>
+      <div class="mid stat"><small>On both</small><b>${b.pairs.length}</b><small>typical gap ${avg == null ? "–" : avg.toFixed(1) + " pts"}</small></div>
+      <div class="half r stat"><small>Kalshi contracts, 24h</small><b class="kalshi">${big(b.counts.kalshiVol24)}</b></div>`;
   }
-  function gapCards(b){
-    const box = $("#gapCards");
+  function gapLedger(b){
+    const box = $("#gapLedger");
     if (!box) return;
-    const n = +(box.dataset.n || 6);
-    const rows = byGap(liquid(b)).slice(0, n);
-    box.innerHTML = rows.map(card).join("") || `<p class="empty">No liquid question has a gap right now.</p>`;
+    const rows = byGap(liquid(b)).slice(0, +(box.dataset.n || 30));
+    box.innerHTML = rows.map(r => lrow(r)).join("") || `<li class="empty center">No liquid question has a gap right now.</li>`;
   }
   function lonely(b){
     const li = (x, cls) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a><small>${cls === "poly" ? usd(x.vol24) : big(x.vol24)}</small></li>`;
@@ -128,13 +123,45 @@
       if (!d && !r) return "";
       const bar = (pd, pr) => `<div class="split"><span class="d" style="width:${pd * 100}%">D ${pc(pd)}</span><span class="rr" style="width:${pr * 100}%">R ${pc(pr)}</span></div>`;
       const pd = side => d ? d[side].p : r ? 1 - r[side].p : null, pr = side => r ? r[side].p : d ? 1 - d[side].p : null;
-      return `<article class="panel"><h3>${label}</h3>
-        <div class="ctlrow"><span><span class="key poly"></span>Polymarket</span>${bar(pd("poly"), pr("poly"))}</div>
-        <div class="ctlrow"><span><span class="key kalshi"></span>Kalshi</span>${bar(pd("kalshi"), pr("kalshi"))}</div>
-        <p class="fine"><a href="/q/${(d || r).slug}">Both prices and the chart →</a></p></article>`;
+      return `<a class="chamber" href="/q/${(d || r).slug}"><h3 class="center">${label}</h3>
+        <span class="half l"><small><i class="key poly"></i>Polymarket</small>${bar(pd("poly"), pr("poly"))}</span>
+        <span class="half r"><small>Kalshi<i class="key kalshi"></i></small>${bar(pd("kalshi"), pr("kalshi"))}</span></a>`;
     };
-    box.innerHTML = chamber("Who wins the House", /\bhouse\b/i) + chamber("Who wins the Senate", /\bsenate\b/i) || `<p class="empty">The House and Senate markets aren’t matched right now.</p>`;
+    box.innerHTML = chamber("Who wins the House", /\bhouse\b/i) + chamber("Who wins the Senate", /\bsenate\b/i) || `<p class="empty center">The House and Senate markets aren’t matched right now.</p>`;
   }
+
+  /* ---------- the finder: search every question and page from anywhere ---------- */
+  const PAGES = [["/", "Every question on both"], ["/gaps", "Biggest gaps"], ["/midterms", "US midterms"], ["/alerts", "Telegram alerts"], ["/learn", "Why prices differ"], ["/about", "About"],
+    ["/topic/politics", "Politics"], ["/topic/economy", "Economy"], ["/topic/sports", "Sports"], ["/topic/crypto", "Crypto"], ["/topic/culture", "Culture"]];
+  let BOARD = null;
+  function finder(){
+    const box = $("#finder"), q = $("#findQ"), res = $("#findRes"), btn = $("#openFind");
+    if (!box) return;
+    let items = [], sel = 0;
+    const draw = () => {
+      const s = q.value.trim().toLowerCase(), words = s.split(/\s+/).filter(Boolean);
+      const pages = PAGES.filter(([, n]) => !s || n.toLowerCase().includes(s)).slice(0, s ? 3 : 6).map(([h, n]) => ({h, html: `<span class="fp">${esc(n)}</span><small>Page</small>`}));
+      const qs = BOARD && words.length ? BOARD.pairs.filter(r => { const h = `${r.title} ${r.outcome || ""} ${r.kalshi.title} ${r.cat}`.toLowerCase(); return words.every(w => h.includes(w)); })
+        .sort((x, y) => (x.thin - y.thin) || (y.poly.vol24 + y.kalshi.vol24) - (x.poly.vol24 + x.kalshi.vol24)).slice(0, 8)
+        .map(r => ({h: "/q/" + r.slug, html: `<span class="fq"><b>${esc(r.title)}</b>${r.outcome ? `<small>${esc(r.outcome)}</small>` : ""}</span><span class="fn"><i class="poly">${pc(r.poly.p)}</i><i class="kalshi">${pc(r.kalshi.p)}</i></span>`})) : [];
+      items = qs.concat(pages); sel = Math.min(sel, items.length - 1);
+      res.innerHTML = items.map((it, i) => `<li><a href="${it.h}"${i === sel ? ' aria-selected="true"' : ""}>${it.html}</a></li>`).join("") || `<li class="empty">Nothing on both platforms matches that.</li>`;
+    };
+    const open = () => { box.hidden = false; document.body.classList.add("finding"); q.value = ""; sel = 0; draw(); setTimeout(() => q.focus(), 10); };
+    const close = () => { box.hidden = true; document.body.classList.remove("finding"); };
+    btn.onclick = open;
+    box.onclick = e => { if (e.target === box) close(); };
+    q.oninput = () => { sel = 0; draw(); };
+    q.onkeydown = e => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + items.length) % Math.max(items.length, 1); draw(); }
+      else if (e.key === "Enter" && items[sel]){ location.href = items[sel].h; }
+    };
+    addEventListener("keydown", e => {
+      if (e.key === "Escape" && !box.hidden) close();
+      else if (box.hidden && (e.key === "/" || (e.key === "k" && (e.metaKey || e.ctrlKey))) && !/input|textarea|select/i.test(document.activeElement.tagName)){ e.preventDefault(); open(); }
+    });
+  }
+  finder();
 
   /* ---------- a question page: live prices and the chart ---------- */
   function chart(box, pts){
@@ -203,14 +230,15 @@
       b = await r.json();
       if (!r.ok || b.error) throw new Error(b.error || r.status);
     } catch (e) {
-      document.querySelectorAll("#rows,.cards,#control").forEach(el => el.innerHTML = `<p class="empty">The markets couldn’t load just now. Refresh in a minute.</p>`);
+      document.querySelectorAll("#ledger,#gapLedger,#control,#spot .spotbody").forEach(el => el.innerHTML = `<p class="empty center">The markets couldn’t load just now. Refresh in a minute.</p>`);
       if (PAGE === "pair") pairPage(null);
       return;
     }
+    BOARD = b;
     if ($("#livePairs")) $("#livePairs").textContent = b.pairs.length;
     window.dispatchEvent(new CustomEvent("ow:data", {detail: b}));
-    if (PAGE === "home"){ spot(b); stats(b); gapCards(b); wireBoard(b); lonely(b); }
-    else if (PAGE === "gaps") gapCards(b);
+    if (PAGE === "home"){ spot(b); stats(b); wireBoard(b); lonely(b); }
+    else if (PAGE === "gaps") gapLedger(b);
     else if (PAGE === "midterms"){ control(b); wireBoard(b, midterm); }
     else if (PAGE === "topic"){ const t = ($("#topic") || {}).dataset?.t; wireBoard(b, r => r.cat === t); }
     else if (PAGE === "pair") pairPage(b);

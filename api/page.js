@@ -21,17 +21,27 @@ const day = iso => { const t = Date.parse(iso); return isFinite(t) ? new Date(t)
 const catName = id => (CATS.find(c => c.id === id) || {name: "Other"}).name;
 const startParam = id => String(id).replace(/\./g, "_");
 
-function duel(r){
-  const a = r.poly.p * 100, b = r.kalshi.p * 100, lo = Math.min(a, b), hi = Math.max(a, b);
-  return `<div class="duel">
-        <div class="side poly"><small><span class="key poly"></span>Polymarket</small><b>${pc(r.poly.p)}</b></div>
-        <div class="gapb"><small>gap</small>${gp(r.gap)}</div>
-        <div class="side kalshi"><small><span class="key kalshi"></span>Kalshi</small><b>${pc(r.kalshi.p)}</b></div>
-      </div><div class="track" role="img" aria-label="Polymarket ${pc(r.poly.p)}, Kalshi ${pc(r.kalshi.p)}">
-      <span class="band" style="left:${lo}%;width:${Math.max(hi - lo, .6)}%"></span>
-      <span class="pin kalshi" style="left:${b}%"></span><span class="pin poly" style="left:${a}%"></span></div>
-      <div class="trackscale"><span>0%</span><span>50%</span><span>100%</span></div>`;
+// The same markup app.js draws: one question across the seam, bars growing out from the middle, the gap in orange.
+function bars(r){
+  const a = r.poly.p * 100, b = r.kalshi.p * 100;
+  const fill = (me, other, col, dir) => me > other && me - other >= .5
+    ? `background:linear-gradient(to ${dir},var(--b-${col}) 0 ${(other / me * 100).toFixed(1)}%,var(--b-gap) 0)` : `background:var(--b-${col})`;
+  return `<span class="lb l"><i style="width:${Math.max(a, .4)}%;${fill(a, b, "poly", "left")}"></i></span><span class="lbm"></span><span class="lb r"><i style="width:${Math.max(b, .4)}%;${fill(b, a, "kalshi", "right")}"></i></span>`;
 }
+function duel(r){
+  return `<div class="duel">
+        <div class="side l"><small><i class="key poly"></i>Polymarket</small><b>${pc(r.poly.p)}</b></div>
+        <div class="gapb"><small>gap</small>${gp(r.gap)}</div>
+        <div class="side r"><small>Kalshi<i class="key kalshi"></i></small><b>${pc(r.kalshi.p)}</b></div>
+        ${bars(r)}
+      </div>`;
+}
+const lrow = r => `<li><a class="lrow${r.thin ? " thin" : ""}" href="/q/${r.slug}">
+      <span class="lq"><b>${esc(r.outcome || r.title)}</b></span>
+      <span class="ls l"><small></small><b>${pc(r.poly.p)}</b></span>
+      <span class="lg${Math.abs(r.gap) >= 5 && !r.thin ? " big" : ""}">${gp(r.gap)}</span>
+      <span class="ls r"><b>${pc(r.kalshi.p)}</b><small></small></span>
+      ${bars(r)}</a></li>`;
 
 function summary(r){
   const who = r.outcome ? `“${r.outcome}”` : "Yes";
@@ -42,52 +52,47 @@ function summary(r){
 
 function pairPage(b, r){
   const siblings = b.pairs.filter(x => x.title === r.title && x.id !== r.id && x.kalshi.event === r.kalshi.event).sort((x, y) => y.poly.p + y.kalshi.p - x.poly.p - x.kalshi.p);
-  const row = (h, p, k) => `<span class="h">${h}</span><span class="v" style="color:var(--b-poly)">${p}</span><span class="v" style="color:var(--b-kalshi)">${k}</span>`;
+  const row = (h, p, k) => `<span class="v l">${p}</span><span class="h">${h}</span><span class="v r">${k}</span>`;
   const chg = (now, prev) => prev == null ? "–" : gp((now - prev) * 100) + " pts";
   const bellBtn = BOT ? `<a class="btn" href="https://t.me/${BOT}?start=g_${encodeURIComponent(startParam(r.id))}" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg> Alert me</a>` : "";
   const shareText = encodeURIComponent(`${r.title}${r.outcome ? " · " + r.outcome : ""}: Polymarket ${pc(r.poly.p)}, Kalshi ${pc(r.kalshi.p)}.`);
   const main = `  <section class="pagehead qhead">
-    <p class="eyebrow">${esc(catName(r.cat))} · ends ${esc(day(r.end))}</p>
-    <h1>${esc(r.title)}</h1>
-    <p class="lede">${r.outcome ? `<b>${esc(r.outcome)}</b>. ` : ""}${esc(summary(r))}</p>
+    <p class="eyebrow center">${esc(catName(r.cat))} · ends ${esc(day(r.end))}</p>
+    <h1 class="center">${esc(r.title)}</h1>
+    <p class="lede center">${r.outcome ? `<b>${esc(r.outcome)}</b>. ` : ""}${esc(summary(r))}</p>
   </section>
   <section class="pair" id="pair" data-id="${esc(r.id)}">
-    <div class="panel bigduel">
-      <div id="duelBox">${duel(r)}</div>
-      <div class="sectionhead" style="margin:26px 0 0">
-        <div class="legend"><span><span class="key poly"></span>Polymarket</span><span><span class="key kalshi"></span>Kalshi</span><span><span class="key gap"></span>Gap</span></div>
+    <div class="spotlight"><div id="duelBox">${duel(r)}</div></div>
+    <div class="facts">
+      ${row("Chance", pc(r.poly.p), pc(r.kalshi.p))}
+      ${row("Best bid / ask", `${cents(r.poly.bid)} / ${cents(r.poly.ask)}`, `${cents(r.kalshi.bid)} / ${cents(r.kalshi.ask)}`)}
+      ${row("24h change", chg(r.poly.p, r.poly.chg1d == null ? null : r.poly.p - r.poly.chg1d), chg(r.kalshi.p, r.kalshi.prev))}
+      ${row("Traded, 24h", "$" + big(r.poly.vol24), big(r.kalshi.vol24) + " ct")}
+      ${row("Traded, all time", "$" + big(r.poly.vol), big(r.kalshi.vol) + " ct")}
+    </div>
+    <p class="mirrorlinks"><span class="l"><a class="btn poly" href="${esc(r.poly.url)}" target="_blank" rel="noopener">Polymarket ↗</a></span><span class="m">${bellBtn}<a class="btn" href="https://x.com/intent/post?text=${shareText}&amp;url=${encodeURIComponent(SITE + "/q/" + r.slug)}${B.x ? "&amp;via=" + B.x : ""}" target="_blank" rel="noopener">Share on X</a></span><span class="r"><a class="btn kalshi" href="${esc(r.kalshi.url)}" target="_blank" rel="noopener">Kalshi ↗</a></span></p>
+    <div class="chartpanel">
+      <div class="charthead">
+        <div class="legend"><span><i class="key poly"></i>Polymarket</span><span><i class="key kalshi"></i>Kalshi</span><span><i class="key gap"></i>Gap</span></div>
         <div class="seg" id="range" role="group" aria-label="Time range"><button data-days="1">24H</button><button data-days="7" aria-pressed="true">7D</button><button data-days="30">30D</button></div>
       </div>
       <div class="pairchart" id="pairChart"><p class="empty">Loading the chart…</p></div>
       <p class="fine">Prices saved every hour. Each is the chance the market gives this outcome.</p>
     </div>
-    <aside class="panel">
-      <h3>Side by side</h3>
-      <div class="facts" style="margin-top:10px">
-        <span class="h"></span><span class="v" style="font-family:var(--f-body);font-size:12.5px;color:var(--b-muted)">Polymarket</span><span class="v" style="font-family:var(--f-body);font-size:12.5px;color:var(--b-muted);padding-left:14px">Kalshi</span>
-        ${row("Chance", pc(r.poly.p), pc(r.kalshi.p))}
-        ${row("Best bid / ask", `${cents(r.poly.bid)} / ${cents(r.poly.ask)}`, `${cents(r.kalshi.bid)} / ${cents(r.kalshi.ask)}`)}
-        ${row("24h change", chg(r.poly.p, r.poly.chg1d == null ? null : r.poly.p - r.poly.chg1d), chg(r.kalshi.p, r.kalshi.prev))}
-        ${row("Traded, 24h", "$" + big(r.poly.vol24), big(r.kalshi.vol24) + " ct")}
-        ${row("Traded, all time", "$" + big(r.poly.vol), big(r.kalshi.vol) + " ct")}
-      </div>
-      <div class="links"><a class="btn poly" href="${esc(r.poly.url)}" target="_blank" rel="noopener">Polymarket ↗</a><a class="btn kalshi" href="${esc(r.kalshi.url)}" target="_blank" rel="noopener">Kalshi ↗</a>${bellBtn}
-        <a class="btn" href="https://x.com/intent/post?text=${shareText}&amp;url=${encodeURIComponent(SITE + "/q/" + r.slug)}${B.x ? "&amp;via=" + B.x : ""}" target="_blank" rel="noopener">Share on X</a></div>
-      <div class="rules" style="margin-top:22px">
-        <h3>How each one words it</h3>
-        <p><span class="key poly"></span>${esc(r.poly.question || r.title)}${r.outcome ? ` <b>(${esc(r.outcome)})</b>` : ""}</p>
-        <p><span class="key kalshi"></span>${esc(r.kalshi.question || r.kalshi.title)}${r.kOutcome ? ` <b>(${esc(r.kOutcome)})</b>` : ""}</p>
-        <p>We match these automatically. Check both platforms’ rules before you trade: a different source or deadline can explain a gap.</p>
-      </div>
-    </aside>
+    <div class="mirror wording">
+      <h2 class="center">How each one words it</h2>
+      <p class="half l">${esc(r.poly.question || r.title)}${r.outcome ? ` <b>(${esc(r.outcome)})</b>` : ""}</p>
+      <p class="half r">${esc(r.kalshi.question || r.kalshi.title)}${r.kOutcome ? ` <b>(${esc(r.kOutcome)})</b>` : ""}</p>
+      <p class="fine center narrow">We match these automatically. Check both platforms’ rules before you trade: a different source or deadline can explain a gap.</p>
+    </div>
   </section>
-${siblings.length ? `  <section class="panel board">
-    <div class="sectionhead"><div><h2>Other outcomes</h2><p class="sub">The rest of “${esc(r.title)}”, priced on both.</p></div></div>
-    <div class="tablebox"><table class="ot"><thead><tr><th scope="col">Outcome</th><th scope="col" class="r"><span class="key poly"></span>Polymarket</th><th scope="col" class="r"><span class="key kalshi"></span>Kalshi</th><th scope="col" class="r">Gap</th></tr></thead><tbody>
-${siblings.slice(0, 30).map(x => `      <tr class="${x.thin ? "thin" : ""}"><td><a class="qn" href="/q/${x.slug}">${esc(x.outcome || x.title)}</a></td><td class="r pp">${pc(x.poly.p)}</td><td class="r kp">${pc(x.kalshi.p)}</td><td class="r">${gp(x.gap)}</td></tr>`).join("\n")}
-    </tbody></table></div>
+${siblings.length ? `  <section class="ledgerwrap">
+    <div class="ledgerhead center"><h2>Other outcomes</h2><p class="sub">The rest of “${esc(r.title)}”, priced on both.</p></div>
+    <ol class="ledger compact">
+${siblings.slice(0, 30).map(lrow).join("\n")}
+    </ol>
   </section>` : ""}
-  <p class="block"><a class="btn" href="/">Every question on both</a> <a class="btn" href="/gaps">The biggest gaps</a> <a class="btn" href="/topic/${r.cat}">More ${esc(catName(r.cat).toLowerCase())}</a></p>`;
+  <p class="block center"><a class="btn" href="/">Every question on both</a> <a class="btn" href="/gaps">The biggest gaps</a> <a class="btn" href="/topic/${r.cat}">More ${esc(catName(r.cat).toLowerCase())}</a></p>`;
   const title = `${r.title}${r.outcome ? ": " + r.outcome : ""} odds, Polymarket vs Kalshi · ${B.name}`;
   const ld = {"@context": "https://schema.org", "@type": "WebPage", name: title, url: `${SITE}/q/${r.slug}`, description: summary(r), dateModified: new Date(b.t).toISOString()};
   return PAIR.replace(/__SLUG__/g, esc(r.slug)).replace(/__TITLE__/g, esc(title)).replace(/__DESC__/g, esc(summary(r)))

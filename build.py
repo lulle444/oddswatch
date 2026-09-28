@@ -87,21 +87,31 @@ def page(path, title, desc, body, og="/api/og?p=home", kind=None, extra=""):
 <style>{BRAND_CSS}</style>
 {extra}</head>
 <body data-page="{kind or path.strip('/') or 'home'}" data-bot="{BOT}">
+<div class="seam" aria-hidden="true"></div>
 <canvas id="lines" aria-hidden="true"></canvas>
-<div class="wrap">
-  <header class="nav">
-    <a class="logo" href="/" aria-label="{{{{name}}}} home"><img src="/assets/logo-mark.svg" alt="" width="34" height="34"><span class="word">{{{{w1}}}}<i>{{{{w2}}}}</i></span></a>
-    <nav class="navlinks" aria-label="Main">{nav}</nav>
-    <div class="navright">{XLINK}<span class="live-pill" id="livePill" title="Pairs of markets we match right now"><i class="dot"></i><b class="num" id="livePairs">–</b> <small>pairs live</small></span></div>
-  </header>
+<span class="edge l" aria-hidden="true">Polymarket</span><span class="edge r" aria-hidden="true">Kalshi</span>
+<header class="crest">
+  <a class="logo" href="/" aria-label="{{{{name}}}} home"><img src="/assets/logo-mark.svg" alt="" width="40" height="40"><span class="word">{{{{w1}}}}<i>{{{{w2}}}}</i></span></a>
+  <span class="live" id="livePill" title="Questions priced on both right now"><i class="dot"></i><b id="livePairs">–</b> questions on both</span>
+</header>
+<main class="wrap">
 {body}
-  <footer class="foot">
-    <div><a class="logo small" href="/"><img src="/assets/logo-mark.svg" alt="" width="24" height="24"><span class="word">{{{{w1}}}}<i>{{{{w2}}}}</i></span></a>
-      <p>{{{{tagline}}}}</p></div>
-    <nav aria-label="Footer">{"".join(f'<a href="{h}">{t}</a>' for h, t in NAV)}</nav>
-    <nav class="topicnav" aria-label="Topics"><span>Topics</span>{"".join(f'<a href="/topic/{t}">{n}</a>' for t, n in TOPICS)}</nav>
-    <p class="fine">Prices from the public data of <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> and <a href="https://kalshi.com" target="_blank" rel="noopener">Kalshi</a>, refreshed every few minutes. {{{{name}}}} is independent and not affiliated with either. No paid placements. Not financial advice, and prediction markets are not legal everywhere. Sister sites: <a href="https://www.usetidewatch.org" target="_blank" rel="noopener">Tidewatch</a>, <a href="https://usepegwatch.vercel.app" target="_blank" rel="noopener">Pegwatch</a> and <a href="https://ratewatch-lemon.vercel.app" target="_blank" rel="noopener">Ratewatch</a>.</p>
-  </footer>
+</main>
+<footer class="foot">
+  <p class="footmark"><img src="/assets/logo-mark.svg" alt="" width="28" height="28"></p>
+  <p>{{{{tagline}}}}</p>
+  <nav aria-label="Topics">{"".join(f'<a href="/topic/{t}">{n}</a>' for t, n in TOPICS)}{XLINK}</nav>
+  <p class="fine">Prices from the public data of <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> and <a href="https://kalshi.com" target="_blank" rel="noopener">Kalshi</a>, refreshed every few minutes. {{{{name}}}} is independent and not affiliated with either. No paid placements. Not financial advice, and prediction markets are not legal everywhere. Sister sites: <a href="https://www.usetidewatch.org" target="_blank" rel="noopener">Tidewatch</a>, <a href="https://usepegwatch.vercel.app" target="_blank" rel="noopener">Pegwatch</a> and <a href="https://ratewatch-lemon.vercel.app" target="_blank" rel="noopener">Ratewatch</a>.</p>
+</footer>
+<nav class="dock" aria-label="Main">
+  <button class="find" id="openFind" type="button" aria-label="Search every question"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Search</span><kbd>/</kbd></button>
+  {nav}
+</nav>
+<div class="finder" id="finder" hidden>
+  <div class="finderbox" role="dialog" aria-modal="true" aria-label="Search">
+    <label class="finderin"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><input id="findQ" type="search" placeholder="Senate, Fed, Chiefs, bitcoin…" autocomplete="off" aria-label="Search questions and pages"><kbd>esc</kbd></label>
+    <ol class="findres" id="findRes"></ol>
+  </div>
 </div>
 <script src="{v('bg.js')}" defer></script>
 <script src="{v('app.js')}" defer></script>
@@ -111,111 +121,94 @@ def page(path, title, desc, body, og="/api/og?p=home", kind=None, extra=""):
 
 
 def head(eyebrow, h1, lede):
-    return f"""  <section class="pagehead">
-    <p class="eyebrow">{eyebrow}</p>
-    <h1>{h1}</h1>
-    <p class="lede">{lede}</p>
+    """A page title split across the seam: the plain words on the Polymarket side, the <em> words on the Kalshi side."""
+    left, _, right = h1.partition("<em>")
+    right = right.replace("</em>", "")
+    return f"""  <section class="mirror pagehead">
+    <p class="eyebrow center">{eyebrow}</p>
+    <h1 class="split"><span class="l">{left.strip()}</span><span class="r"><em>{right.strip()}</em></span></h1>
+    <p class="lede center">{lede}</p>
   </section>"""
 
 
-BOARD = """  <section class="panel board" aria-labelledby="boardH">
-    <div class="sectionhead">
-      <div><h2 id="boardH">__BOARD_H__</h2><p class="sub" id="boardSub">Loading both markets…</p></div>
-      <div class="filters">
-        <label class="search"><span class="visually-hidden">Search</span><input id="q" type="search" placeholder="Search Senate, Fed, Chiefs…" autocomplete="off"></label>
-        <label class="select"><span class="visually-hidden">Sort</span><select id="sort"><option value="vol">Most traded</option><option value="gap">Biggest gap</option><option value="end">Ending soonest</option></select></label>
+LEDGER = """  <section class="ledgerwrap" aria-labelledby="boardH">
+    <div class="ledgerhead center">
+      <h2 id="boardH">__BOARD_H__</h2>
+      <p class="sub" id="boardSub">Loading both markets…</p>
+      <div class="controls">
+        <div class="chips" id="chips" role="group" aria-label="Topic"></div>
+        <div class="sorts" id="sorts" role="group" aria-label="Sort"><button data-sort="vol" aria-pressed="true">Most traded</button><button data-sort="gap">Biggest gap</button><button data-sort="end">Ending soonest</button></div>
+        <label class="filter"><span class="visually-hidden">Filter these questions</span><input id="q" type="search" placeholder="Filter these questions" autocomplete="off"></label>
       </div>
     </div>
-    <div class="chips" id="chips" role="group" aria-label="Topic"></div>
-    <div class="tablebox">
-      <table class="ot">
-        <thead><tr>
-          <th scope="col">Question</th>
-          <th scope="col" class="r"><span class="key poly"></span>Polymarket</th>
-          <th scope="col" class="r"><span class="key kalshi"></span>Kalshi</th>
-          <th scope="col" class="r">Gap</th>
-          <th scope="col" class="r hs">24h traded</th>
-          <th scope="col" class="r hm">Ends</th>
-        </tr></thead>
-        <tbody id="rows"><tr><td colspan="6" class="empty">Loading both markets…</td></tr></tbody>
-      </table>
-    </div>
+    <div class="ledgerkey" aria-hidden="true"><span class="l"><i class="key poly"></i>Polymarket</span><span class="m">gap</span><span class="r">Kalshi<i class="key kalshi"></i></span></div>
+    <ol class="ledger" id="ledger"><li class="empty center">Loading both markets…</li></ol>
     <p class="more"><button class="btn" id="showMore" hidden>Show more</button></p>
-    <p class="fine">Each price is the market’s chance for that outcome: the middle of the best bid and ask, or the last trade when the spread is wider than 10 points, the way both platforms show it. Gap is Polymarket minus Kalshi, in percentage points. <span class="thin-key">Faded</span> rows are thinly traded or have a wide spread, so their gap may not be real.</p>
+    <p class="fine center narrow">Each price is the market’s chance for that outcome: the middle of the best bid and ask, or the last trade when the spread is wider than 10 points, the way both platforms show it. The bars grow out from the middle, one per market; the orange end is the gap. Gap is Polymarket minus Kalshi, in percentage points. <span class="thin-key">Faded</span> rows are thinly traded or have a wide spread, so their gap may not be real.</p>
   </section>
 """
 
-HOME = """  <section class="hero">
-    <div>
-      <p class="eyebrow">Polymarket vs Kalshi, live</p>
-      <h1>Same event. <em>Different odds.</em></h1>
-      <p class="lede">The two biggest prediction markets often price the same question differently. We match every question they share and show both prices side by side, so you can see where they agree, where they don’t, and by how much.</p>
-      <p class="heroctas"><a class="btn primary" href="/gaps">See the biggest gaps</a> <a class="btn" href="/alerts">Get gap alerts</a></p>
-    </div>
-    <aside class="spot panel" id="spot" aria-live="polite">
-      <p class="eyebrow">Biggest gap right now</p>
-      <div class="spotbody"><p class="empty">Loading…</p></div>
-    </aside>
+HOME = """  <section class="mirror hero">
+    <h1 class="split"><span class="l">Same event.</span><span class="r"><em>Different odds.</em></span></h1>
+    <p class="lede center">The two biggest prediction markets often price the same question differently. Polymarket sits on the left, Kalshi on the right, and every question they share runs across the middle, so you can see at a glance where they agree and where they don’t.</p>
+    <p class="ctas center"><a class="btn primary" href="/gaps">See the biggest gaps</a> <a class="btn" href="/alerts">Get gap alerts</a></p>
   </section>
 
-  <section class="stats" id="stats" aria-label="The two markets today"></section>
+  <section class="spotlight" id="spot" aria-live="polite"><p class="eyebrow center">The biggest gap right now</p><div class="spotbody"><p class="empty center">Loading…</p></div></section>
 
-  <section class="gapcards" aria-labelledby="gapsH">
-    <div class="sectionhead"><div><h2 id="gapsH">Where they disagree most</h2><p class="sub">Liquid questions only: both sides trade, both spreads are tight, and games already under way are left out.</p></div><a class="btn" href="/gaps">All gaps →</a></div>
-    <div class="cards" id="gapCards"><p class="empty">Loading…</p></div>
-  </section>
+  <section class="mirror stats" id="stats" aria-label="The two markets today"></section>
 
-""" + BOARD.replace("__BOARD_H__", "Every question on both") + """
-  <section class="twocol lonely" aria-label="Only on one platform">
-    <article class="panel"><h3><span class="key poly"></span>Busy on Polymarket, not on Kalshi</h3><ol id="onlyPoly" class="lonelist"><li class="empty">Loading…</li></ol></article>
-    <article class="panel"><h3><span class="key kalshi"></span>Busy on Kalshi, not on Polymarket</h3><ol id="onlyKalshi" class="lonelist"><li class="empty">Loading…</li></ol></article>
+""" + LEDGER.replace("__BOARD_H__", "Every question on both") + """
+  <section class="mirror lonely" aria-label="Only on one platform">
+    <div class="half l"><h3>Only on Polymarket</h3><p class="sub">Busy markets Kalshi doesn’t list.</p><ol id="onlyPoly" class="lonelist"><li class="empty">Loading…</li></ol></div>
+    <div class="half r"><h3>Only on Kalshi</h3><p class="sub">Busy markets Polymarket doesn’t list.</p><ol id="onlyKalshi" class="lonelist"><li class="empty">Loading…</li></ol></div>
   </section>
 """
 
 GAPS = head("Gaps", "Where the markets <em>disagree.</em>",
-            "Every question both platforms trade, sorted by how far apart their prices are. A gap can mean one side has news the other hasn’t priced, different rules, or different traders. Thin markets are left out.") + """
-  <section class="gapcards"><div class="cards" id="gapCards" data-n="24"><p class="empty">Loading…</p></div></section>
-  <section class="twocol">
-    <article class="panel note"><h3>Is a gap free money?</h3><p>Rarely. Fees on both sides, money stuck until the market settles, and small differences in how each platform words and settles the question eat most gaps. Read both rule texts before you trade either side.</p></article>
-    <article class="panel note"><h3>Why do gaps happen?</h3><p>Different traders, different access (Kalshi is US-regulated, Polymarket runs a US and an international exchange), different fees and different settlement rules. Big gaps usually close when news lands. <a href="/learn">More on why prices differ</a>.</p></article>
+            "Every question both platforms trade, sorted by how far apart their prices are. A gap can mean one side has news the other hasn’t priced, different rules, or different traders. Thin markets and games already under way are left out.") + """
+  <ol class="ledger" id="gapLedger" data-n="30"><li class="empty center">Loading…</li></ol>
+  <section class="dialogue">
+    <article class="qa"><h3>Is a gap free money?</h3><p>Rarely. Fees on both sides, money stuck until the market settles, and small differences in how each platform words and settles the question eat most gaps. Read both rule texts before you trade either side.</p></article>
+    <article class="qa"><h3>Why do gaps happen?</h3><p>Different traders, different access (Kalshi is US-regulated, Polymarket runs a US and an international exchange), different fees and different settlement rules. Big gaps usually close when news lands. <a href="/learn">More on why prices differ</a>.</p></article>
   </section>
 """
 
 MIDTERMS = head("US midterms · November 3, 2026", "The midterms, <em>priced twice.</em>",
                 "Who wins the House, the Senate and the closest races, according to Polymarket and Kalshi, side by side and live.") + """
-  <section class="control" id="control" aria-label="Control of Congress"><p class="empty">Loading…</p></section>
-""" + BOARD.replace("__BOARD_H__", "Every midterm question on both") + """
-  <p class="fine block">We count a question as a midterm question when it mentions the House, the Senate, a governor or a 2026 election. Races that only one platform lists are not shown.</p>
+  <section class="control" id="control" aria-label="Control of Congress"><p class="empty center">Loading…</p></section>
+""" + LEDGER.replace("__BOARD_H__", "Every midterm question on both") + """
+  <p class="fine center narrow">We count a question as a midterm question when it mentions the House, the Senate, a governor or a 2026 election. Races that only one platform lists are not shown.</p>
 """
 
 TOPIC = """__HEAD__
   <span id="topic" data-t="__TOPIC__" hidden></span>
-""" + BOARD.replace("__BOARD_H__", "Every __TOPIC__ question on both")
+""" + LEDGER.replace("__BOARD_H__", "Every __TOPIC__ question on both")
 
 LEARN = head("Learn", "Why the same question <em>has two prices.</em>",
              "Prediction markets price the chance that something happens. When two of them price the same thing differently, there is usually a reason.") + """
-  <section class="twocol">
-    <article class="panel note">
+  <section class="dialogue">
+    <article class="qa">
       <h3>What does a price mean?</h3>
       <p>A contract pays $1 if the outcome happens and nothing if it doesn’t. So a price of 62¢ means traders put the chance at about 62%. We show it as a percentage.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Why do Polymarket and Kalshi disagree?</h3>
       <p>Different people trade on each. Kalshi is regulated in the US and takes bank transfers; Polymarket settles in stablecoins and runs a US and an international exchange. Different traders read the news differently, and money can’t move instantly between the two.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Are the two questions really the same?</h3>
       <p>Usually, but read the rules. One platform may settle on a different source, date or definition, for example who counts as a party’s candidate. When the wording differs, a gap can be fair. Every question page links both rule texts.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>What is a thin market?</h3>
       <p>One where little trades or the gap between the best bid and ask is wide. Its price can sit far from the truth for hours. We fade those rows and leave them out of the gap rankings.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>How do you match questions?</h3>
       <p>We compare the titles, dates and outcomes of every open market on both platforms, then check the numbers and sides agree, so “Chiefs vs Dolphins” matches “Miami at Kansas City” but a Fed cut of 25 points never matches a cut of 50. The matches are automatic, so an odd one can slip through. Tell us on X if you spot one.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Can I trade the gap?</h3>
       <p>Buying Yes on the cheap side and No on the dear side can lock in the gap, but fees, withdrawal times and rule differences eat most of it. Treat a gap as information about what traders think, not as free money.</p>
     </article>
@@ -223,20 +216,20 @@ LEARN = head("Learn", "Why the same question <em>has two prices.</em>",
 """
 
 ABOUT = head("About", "{{name}}, in one line.", "{{tagline}}") + """
-  <section class="twocol">
-    <article class="panel note">
+  <section class="dialogue">
+    <article class="qa">
       <h3>What it is</h3>
       <p>{{name}} reads every open market on Polymarket and Kalshi, finds the questions they share and shows both prices side by side, with the gap between them. It saves the prices every hour, so each question has its own chart of how the two markets moved.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Where the numbers come from</h3>
       <p>Both platforms publish their markets and prices on free public APIs. We read them every few minutes. We don’t trade and we don’t take orders.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Independent</h3>
       <p>{{name}} is not affiliated with Polymarket or Kalshi, and nobody pays to be listed. Rows are sorted by the numbers only.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Not financial advice</h3>
       <p>Prediction markets can lose you money, and they are not legal everywhere. Check the rules where you live and on each platform before you trade.</p>
     </article>
@@ -245,22 +238,22 @@ ABOUT = head("About", "{{name}}, in one line.", "{{tagline}}") + """
 
 ALERTS_ON = head("Alerts", "Know when the odds <em>move.</em>",
                  "Free Telegram messages when a question moves, when Polymarket and Kalshi drift apart, and a short daily note of the biggest gaps.") + f"""
-  <section class="twocol">
-    <article class="panel note">
+  <section class="dialogue">
+    <article class="qa">
       <h3>Gap alerts</h3>
-      <p>Tap 🔔 on any question, or send <code>/gap senate 5</code> to hear when Polymarket and Kalshi are 5 points or more apart on the Senate.</p>
+      <p>Tap the bell on any question, or send <code>/gap senate 5</code> to hear when Polymarket and Kalshi are 5 points or more apart on the Senate.</p>
       <p><a class="btn primary" href="https://t.me/{BOT}" target="_blank" rel="noopener">Open @{BOT}</a></p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Move alerts</h3>
       <p>Send <code>/move fed 10</code> to hear when the odds on a question move 10 points from where they are now, on either platform.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Daily gaps</h3>
       <p>Every evening: the five biggest gaps between Polymarket and Kalshi on liquid questions, and the biggest moves of the day.</p>
       <p><a class="btn" href="https://t.me/{BOT}?start=daily" target="_blank" rel="noopener">Get the daily gaps</a></p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>How it works</h3>
       <p>We check every 10 minutes. An alert fires once, then waits until the gap has closed back 2 points before it can fire again, so a question hovering at your level doesn’t flood you. Send <code>/list</code> to see or remove alerts and <code>/stop</code> to remove everything.</p>
     </article>

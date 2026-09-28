@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap"></noscript>
-<link rel="stylesheet" href="/styles.css?v=327c6d43dc">
+<link rel="stylesheet" href="/styles.css?v=72cb714ecc">
 <style>:root{
   --b-bg:#0B0A0C;
   --b-bg2:#1A181C;
@@ -44,48 +44,58 @@
 }</style>
 </head>
 <body data-page="alerts" data-bot="useoddwatchbot">
+<div class="seam" aria-hidden="true"></div>
 <canvas id="lines" aria-hidden="true"></canvas>
-<div class="wrap">
-  <header class="nav">
-    <a class="logo" href="/" aria-label="Oddswatch home"><img src="/assets/logo-mark.svg" alt="" width="34" height="34"><span class="word">Odds<i>watch</i></span></a>
-    <nav class="navlinks" aria-label="Main"><a href="/">Odds</a><a href="/gaps">Gaps</a><a href="/midterms">Midterms</a><a href="/alerts" aria-current="page">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a></nav>
-    <div class="navright"><span class="live-pill" id="livePill" title="Pairs of markets we match right now"><i class="dot"></i><b class="num" id="livePairs">–</b> <small>pairs live</small></span></div>
-  </header>
-  <section class="pagehead">
-    <p class="eyebrow">Alerts</p>
-    <h1>Know when the odds <em>move.</em></h1>
-    <p class="lede">Free Telegram messages when a question moves, when Polymarket and Kalshi drift apart, and a short daily note of the biggest gaps.</p>
+<span class="edge l" aria-hidden="true">Polymarket</span><span class="edge r" aria-hidden="true">Kalshi</span>
+<header class="crest">
+  <a class="logo" href="/" aria-label="Oddswatch home"><img src="/assets/logo-mark.svg" alt="" width="40" height="40"><span class="word">Odds<i>watch</i></span></a>
+  <span class="live" id="livePill" title="Questions priced on both right now"><i class="dot"></i><b id="livePairs">–</b> questions on both</span>
+</header>
+<main class="wrap">
+  <section class="mirror pagehead">
+    <p class="eyebrow center">Alerts</p>
+    <h1 class="split"><span class="l">Know when the odds</span><span class="r"><em>move.</em></span></h1>
+    <p class="lede center">Free Telegram messages when a question moves, when Polymarket and Kalshi drift apart, and a short daily note of the biggest gaps.</p>
   </section>
-  <section class="twocol">
-    <article class="panel note">
+  <section class="dialogue">
+    <article class="qa">
       <h3>Gap alerts</h3>
-      <p>Tap 🔔 on any question, or send <code>/gap senate 5</code> to hear when Polymarket and Kalshi are 5 points or more apart on the Senate.</p>
+      <p>Tap the bell on any question, or send <code>/gap senate 5</code> to hear when Polymarket and Kalshi are 5 points or more apart on the Senate.</p>
       <p><a class="btn primary" href="https://t.me/useoddwatchbot" target="_blank" rel="noopener">Open @useoddwatchbot</a></p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Move alerts</h3>
       <p>Send <code>/move fed 10</code> to hear when the odds on a question move 10 points from where they are now, on either platform.</p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>Daily gaps</h3>
       <p>Every evening: the five biggest gaps between Polymarket and Kalshi on liquid questions, and the biggest moves of the day.</p>
       <p><a class="btn" href="https://t.me/useoddwatchbot?start=daily" target="_blank" rel="noopener">Get the daily gaps</a></p>
     </article>
-    <article class="panel note">
+    <article class="qa">
       <h3>How it works</h3>
       <p>We check every 10 minutes. An alert fires once, then waits until the gap has closed back 2 points before it can fire again, so a question hovering at your level doesn’t flood you. Send <code>/list</code> to see or remove alerts and <code>/stop</code> to remove everything.</p>
     </article>
   </section>
 
-  <footer class="foot">
-    <div><a class="logo small" href="/"><img src="/assets/logo-mark.svg" alt="" width="24" height="24"><span class="word">Odds<i>watch</i></span></a>
-      <p>Same event, different odds. Polymarket and Kalshi side by side.</p></div>
-    <nav aria-label="Footer"><a href="/">Odds</a><a href="/gaps">Gaps</a><a href="/midterms">Midterms</a><a href="/alerts">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a></nav>
-    <nav class="topicnav" aria-label="Topics"><span>Topics</span><a href="/topic/politics">Politics</a><a href="/topic/economy">Economy</a><a href="/topic/sports">Sports</a><a href="/topic/crypto">Crypto</a><a href="/topic/culture">Culture</a></nav>
-    <p class="fine">Prices from the public data of <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> and <a href="https://kalshi.com" target="_blank" rel="noopener">Kalshi</a>, refreshed every few minutes. Oddswatch is independent and not affiliated with either. No paid placements. Not financial advice, and prediction markets are not legal everywhere. Sister sites: <a href="https://www.usetidewatch.org" target="_blank" rel="noopener">Tidewatch</a>, <a href="https://usepegwatch.vercel.app" target="_blank" rel="noopener">Pegwatch</a> and <a href="https://ratewatch-lemon.vercel.app" target="_blank" rel="noopener">Ratewatch</a>.</p>
-  </footer>
+</main>
+<footer class="foot">
+  <p class="footmark"><img src="/assets/logo-mark.svg" alt="" width="28" height="28"></p>
+  <p>Same event, different odds. Polymarket and Kalshi side by side.</p>
+  <nav aria-label="Topics"><a href="/topic/politics">Politics</a><a href="/topic/economy">Economy</a><a href="/topic/sports">Sports</a><a href="/topic/crypto">Crypto</a><a href="/topic/culture">Culture</a></nav>
+  <p class="fine">Prices from the public data of <a href="https://polymarket.com" target="_blank" rel="noopener">Polymarket</a> and <a href="https://kalshi.com" target="_blank" rel="noopener">Kalshi</a>, refreshed every few minutes. Oddswatch is independent and not affiliated with either. No paid placements. Not financial advice, and prediction markets are not legal everywhere. Sister sites: <a href="https://www.usetidewatch.org" target="_blank" rel="noopener">Tidewatch</a>, <a href="https://usepegwatch.vercel.app" target="_blank" rel="noopener">Pegwatch</a> and <a href="https://ratewatch-lemon.vercel.app" target="_blank" rel="noopener">Ratewatch</a>.</p>
+</footer>
+<nav class="dock" aria-label="Main">
+  <button class="find" id="openFind" type="button" aria-label="Search every question"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Search</span><kbd>/</kbd></button>
+  <a href="/">Odds</a><a href="/gaps">Gaps</a><a href="/midterms">Midterms</a><a href="/alerts" aria-current="page">Alerts</a><a href="/learn">Learn</a><a href="/about">About</a>
+</nav>
+<div class="finder" id="finder" hidden>
+  <div class="finderbox" role="dialog" aria-modal="true" aria-label="Search">
+    <label class="finderin"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><input id="findQ" type="search" placeholder="Senate, Fed, Chiefs, bitcoin…" autocomplete="off" aria-label="Search questions and pages"><kbd>esc</kbd></label>
+    <ol class="findres" id="findRes"></ol>
+  </div>
 </div>
-<script src="/bg.js?v=8adea0083c" defer></script>
-<script src="/app.js?v=72b468ca00" defer></script>
+<script src="/bg.js?v=e14b7062f9" defer></script>
+<script src="/app.js?v=125dca2582" defer></script>
 </body>
 </html>
